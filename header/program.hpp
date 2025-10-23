@@ -4,7 +4,6 @@
 
 #include "logger.hpp"
 #include "instruction.hpp"
-#include "instructionset.hpp"
 #include "filereader.hpp"
 #include "compiler.hpp"
 
