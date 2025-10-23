@@ -1,4 +1,5 @@
 #include "../header/logger.hpp"
+#include <iostream>
 
 const std::string Logger::filename = "PICasso.log";
 int Logger::loglevel = 1;

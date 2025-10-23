@@ -34,21 +34,52 @@
 #include "../header/instructionset/sleep.hpp"
 #include "../header/instructionset/sublw.hpp"
 #include "../header/instructionset/xorlw.hpp"
+
+
 #include <vector>
+#include <sstream>
+#include <string>
+
+
+Compiler::Compiler(): logger("Compiler")
+{
+
+}
 
 std::tuple<bool, std::vector<Instruction*>> Compiler::compileSourcecode(std::string code)
 {
 
-    std::vector<Instruction*> compilationOutput(1024, nullptr);
+    std::vector<Instruction*> compilationOutput = {};
+
+    std::istringstream stream(code);
+    std::string line;
+
+    while (std::getline(stream, line))
+    {
+        if (!line.empty() && line[0] == ' ')
+            continue;
+
+        std::string combined = line.substr(0, 4) + line.substr(5, 4);
+        uint16_t number = static_cast<uint16_t>(std::stoi(combined, nullptr, 10));
+
+        Instruction* instruction = getInstruction(number);
+
+        if(instruction == nullptr){
+            logger.log("ERROR: Invalid instruction at " + line);
+            return {false, {}};
+        }
+
+        compilationOutput.push_back(instruction);
+        logger.log(line);
+    }
 
 
 
-
-    return {false, {}};
+    return {true, compilationOutput};
 }
 
 
-Instruction* getInstruction(const uint16_t instruction)
+Instruction* Compiler::getInstruction(const uint16_t instruction)
 {
     
     uint16_t bitmap7bit = 0b0011111110000000;
