@@ -4,6 +4,10 @@ int main()
 {
     Program p;
 
+    std::string prog = "progs/TPicSim1.LST";
+
+    p.loadProgram(prog);
+
 
     return 0;
 }
