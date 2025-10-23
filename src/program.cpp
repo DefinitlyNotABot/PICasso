@@ -13,19 +13,19 @@ void Program::loadProgram(std::string filename)
 
     if(!validFileRead)
     {
-        logger.log("Received invalid file");
+        logger.log(std::string("Received invalid file"));
         return;
     }
 
     auto [validCompile, compiled] = compiler.compileSourcecode(fileContent);
 
     if(!validCompile){
-        logger.log("Compilation failed");
+        logger.log(std::string(("Compilation failed")));
         return;
     }
 
     instructionOrder.clear();
     instructionOrder = compiled;
 
-    logger.log("Successfully loaded file");
+    logger.log(std::string(("Successfully loaded file")));
 }
