@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 class Instruction
 {
     private:
@@ -7,4 +9,4 @@ class Instruction
         uint16_t param2;
     public:
         virtual void execute() = 0;
-}
+};

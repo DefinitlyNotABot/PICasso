@@ -1,6 +1,8 @@
-#include "program.hpp"
+#include "../header/program.hpp"
 
 
-Program::Program(){
-    std::cout << "Hello World" << std::endl;
-}
+Program::Program(): logger("Program")
+{
+
+    logger.log("Hello World");
+};
