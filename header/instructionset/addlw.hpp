@@ -7,6 +7,6 @@ class ADDLW : public Instruction
    private:
       uint16_t literal;
    public:
-   ADDLW(uint16_t literal);
+   ADDLW(uint16_t instruction);
  void execute(); 
 };

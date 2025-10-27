@@ -7,6 +7,6 @@ class BSF   : public Instruction
    uint8_t bit;
    uint16_t file;
  public:
-   BSF(uint8_t bit, uint16_t file);
+   BSF(uint16_t instruction);
  void execute(); 
 };

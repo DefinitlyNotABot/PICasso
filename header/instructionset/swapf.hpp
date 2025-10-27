@@ -8,6 +8,6 @@ class SWAPF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   SWAPF(uint16_t destination, uint16_t file);
+   SWAPF(uint16_t instruction);
  void execute(); 
 };

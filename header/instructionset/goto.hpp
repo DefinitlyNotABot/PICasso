@@ -6,6 +6,6 @@ class GOTO  : public Instruction
 {
    uint16_t address;
  public:
-   GOTO(uint16_t address);
+   GOTO(uint16_t instruction);
  void execute(); 
 };

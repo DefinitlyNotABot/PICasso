@@ -5,5 +5,6 @@
 class NOP   : public Instruction 
 {
  public:
- void execute(); 
+    NOP(uint16_t instruction);
+    void execute(); 
 };

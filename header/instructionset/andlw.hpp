@@ -7,6 +7,6 @@ class ANDLW : public Instruction
    private:
       uint16_t literal;
    public:
-   ANDLW(uint16_t literal);
+   ANDLW(uint16_t instruction);
  void execute(); 
 };

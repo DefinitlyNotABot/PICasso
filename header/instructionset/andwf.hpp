@@ -8,6 +8,6 @@ class ANDWF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-      ANDWF(uint16_t destination, uint16_t file);
+      ANDWF(uint16_t instruction);
       void execute(); 
 };

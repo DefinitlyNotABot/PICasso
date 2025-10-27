@@ -8,6 +8,6 @@ class ADDWF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-      ADDWF(uint16_t destination, uint16_t file);
+      ADDWF(uint16_t instruction);
  void execute(); 
 };
