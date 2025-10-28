@@ -17,15 +17,15 @@ void Program::loadProgram(std::string filename)
         return;
     }
 
-    auto [validCompile, compiled] = compiler.compileSourcecode(fileContent);
+    std::vector<std::unique_ptr<Instruction>> compiled = compiler.compileSourcecode(fileContent);
 
-    if(!validCompile){
+    if(compiled.empty()){
         logger.log(std::string(("Compilation failed")));
         return;
     }
 
     instructionOrder.clear();
-    instructionOrder = compiled;
+    instructionOrder = std::move(compiled);
 
     logger.log(std::string(("Successfully loaded file")));
 }

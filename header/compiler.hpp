@@ -1,7 +1,7 @@
 #pragma once
 
+#include <memory>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include "instruction.hpp"
@@ -12,8 +12,8 @@ class Compiler
     private:
         Logger logger;
 
-        Instruction* getInstruction(const uint16_t instruction);
+        std::unique_ptr<Instruction>  getInstruction(const uint16_t instruction);
     public:
         Compiler();
-        std::tuple<bool, std::vector<Instruction*>> compileSourcecode(std::string code);
+        std::vector<std::unique_ptr<Instruction>> compileSourcecode(std::string& code);
 };
