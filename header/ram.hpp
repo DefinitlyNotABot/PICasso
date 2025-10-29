@@ -4,11 +4,11 @@
 class Ram
 {
     private:
-    Register memory[255];
+    Register memory[256];
 
     public:
         Ram();
-        uint8_t getRegister(uint8_t address);
-        void setRegister(uint8_t address, uint8_t value);   
+        uint8_t readRegister(uint8_t address);
+        void writeRegister(uint8_t address, uint8_t value);   
 
 };
