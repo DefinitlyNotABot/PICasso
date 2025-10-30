@@ -1,7 +1,7 @@
 # include "../header/ram.hpp"
 #include <stdexcept> 
 
-Ram::Ram()
+void Ram::reset()
 {
     memory[0x03].writeBit(3, true);
     memory[0x03].writeBit(4, true);
@@ -11,6 +11,11 @@ Ram::Ram()
     memory[0x83].writeBit(4, true);
     memory[0x85].writeByte(0x1F);
     memory[0x86].writeByte(0xFF);
+}
+
+Ram::Ram()
+{
+    reset();
 }
 
 uint8_t Ram::readRegister(uint8_t address)
