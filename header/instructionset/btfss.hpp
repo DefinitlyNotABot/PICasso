@@ -7,6 +7,6 @@ class BTFSS : public Instruction
    uint8_t bit;
    uint16_t file;
  public:
-   BTFSS(uint8_t bit, uint16_t file);
+   BTFSS(uint16_t instruction);
  void execute(); 
 };

@@ -5,5 +5,6 @@
 class CLRW  : public Instruction 
 {
  public:
- void execute(); 
+    CLRW(uint16_t instruction);
+    void execute(); 
 };

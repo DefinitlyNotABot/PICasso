@@ -4,7 +4,7 @@ int main()
 {
     Program p;
 
-    std::string prog = "progs/TPicSim1.LST";
+    std::string prog = "progs/TPicSim10.LST";
 
     p.loadProgram(prog);
 

@@ -46,10 +46,10 @@ Compiler::Compiler(): logger("Compiler")
 
 }
 
-std::tuple<bool, std::vector<Instruction*>> Compiler::compileSourcecode(std::string code)
+std::vector<std::unique_ptr<Instruction>> Compiler::compileSourcecode(std::string& code)
 {
 
-    std::vector<Instruction*> compilationOutput = {};
+    std::vector<std::unique_ptr<Instruction>> compilationOutput = {};
 
     std::istringstream stream(code);
     std::string line;
@@ -59,27 +59,28 @@ std::tuple<bool, std::vector<Instruction*>> Compiler::compileSourcecode(std::str
         if (!line.empty() && line[0] == ' ')
             continue;
 
-        std::string combined = line.substr(0, 4) + line.substr(5, 4);
+        std::string combined = line.substr(5, 4);
         uint16_t number = static_cast<uint16_t>(std::stoi(combined, nullptr, 10));
 
-        Instruction* instruction = getInstruction(number);
+        std::unique_ptr<Instruction> instruction = getInstruction(number);
 
         if(instruction == nullptr){
             logger.log("ERROR: Invalid instruction at " + line);
-            return {false, {}};
+            compilationOutput.clear();
+            return {};
         }
 
-        compilationOutput.push_back(instruction);
+        compilationOutput.push_back(std::move(instruction));
         logger.log(line);
     }
 
 
 
-    return {true, compilationOutput};
+    return compilationOutput;
 }
 
 
-Instruction* Compiler::getInstruction(const uint16_t instruction)
+std::unique_ptr<Instruction> Compiler::getInstruction(const uint16_t instruction)
 {
     
     uint16_t bitmap7bit = 0b0011111110000000;
@@ -93,13 +94,13 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch(instruction)
     {
         case 0x0064: // CLRWDT            
-            return new CLRWDT();
+            return std::make_unique<CLRWDT>(instruction);
         case 0x0009: // RETFIE
-            return new RETFIE();
+            return std::make_unique<RETFIE>(instruction);
         case 0x0008: // RETURN
-            return new RETURN();
+            return std::make_unique<RETURN>(instruction);
         case 0x0063: // SLEEP
-            return new SLEEP();
+            return std::make_unique<SLEEP>(instruction);
         default:
             break;
     }
@@ -109,13 +110,13 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch (instructionMapped)
     {
     case 0x0180: // CLRF
-        return new CLRF(instruction & 0b01111111);
+        return std::make_unique<CLRF>(instruction);
     case 0x0100: // CLRW
-        return new CLRW();
+        return std::make_unique<CLRW>(instruction);
     case 0x0080: // MOVWF
-        return new MOVWF(instruction & 0b01111111);
+        return std::make_unique<MOVWF>(instruction);
     case 0x0000: // NOP
-        return new NOP();
+        return std::make_unique<NOP>(instruction);
     default:
         break;
     }
@@ -125,39 +126,39 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch (instructionMapped)
     {
     case 0x0700: // ADDWF
-        return new ADDWF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<ADDWF>(instruction);
     case 0x0500: // ANDWF        
-        return new ANDWF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<ANDWF>(instruction);
     case 0x0900: // COMF        
-        return new COMF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<COMF>(instruction);
     case 0x0300: // DECF
-        return new DECF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<DECF>(instruction);
     case 0x0B00: // DECFSZ
-        return new DECFSZ(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<DECFSZ>(instruction);
     case 0x0A00: // INCF
-        return new INCF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<INCF>(instruction);
     case 0x0F00: // INCFSZ
-        return new INCFSZ(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<INCFSZ>(instruction);
     case 0x0400: // IORWF
-        return new IORWF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<IORWF>(instruction);
     case 0x0800: // MOVF
-        return new MOVF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<MOVF>(instruction);
     case 0x0D00: // RLF
-        return new RLF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<RLF>(instruction);
     case 0x0C00: // RRF
-        return new RRF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<RRF>(instruction);
     case 0x0200: // SUBWF
-        return new SUBWF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<SUBWF>(instruction);
     case 0x0E00: // SWAPF
-        return new SWAPF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<SWAPF>(instruction);
     case 0x0600: // XORWF
-        return new XORWF(instruction & 0b10000000, instruction & 0b01111111);
+        return std::make_unique<XORWF>(instruction);
     case 0x3900: // ANDLW        
-        return new ANDLW(instruction & 0xFF);
+        return std::make_unique<ANDLW>(instruction);
     case 0x3800: // IORLW
-        return new IORLW(instruction & 0xFF);
+        return std::make_unique<IORLW>(instruction);
     case 0x3A00: // XORLW
-        return new XORLW(instruction & 0xFF);
+        return std::make_unique<XORLW>(instruction);
     default:
         break;
     }
@@ -165,9 +166,9 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch (instructionMapped)
     {
         case 0x3E00: // ADDLW
-            return new ADDLW(instruction & 0xFF);
+            return std::make_unique<ADDLW>(instruction);
         case 0x3C00: // SUBLW
-            return new SUBLW(instruction & 0xFF);
+            return std::make_unique<SUBLW>(instruction);
         default:
             break;
     }
@@ -175,17 +176,17 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch (instructionMapped)
     {
         case 0x1000: // BCF            
-            return new BCF(instruction & 0b1110000000, instruction & 0b0001111111);
+            return std::make_unique<BCF>(instruction);
         case 0x1400: // BSF
-            return new BSF(instruction & 0b1110000000, instruction & 0b0001111111);
+            return std::make_unique<BSF>(instruction);
         case 0x1800: // BTFSC
-            return new BTFSC(instruction & 0b1110000000, instruction & 0b0001111111);
+            return std::make_unique<BTFSC>(instruction);
         case 0x1C00: // BTFSS
-            return new BTFSS(instruction & 0b1110000000, instruction & 0b0001111111);
+            return std::make_unique<BTFSS>(instruction);
         case 0x3000: // MOVLW
-            return new MOVLW(instruction & 0xFF);
+            return std::make_unique<MOVLW>(instruction);
         case 0x3400: // RETLW
-            return new RETLW(instruction & 0xFF);
+            return std::make_unique<RETLW>(instruction);
         default:
             break;
     }
@@ -194,9 +195,9 @@ Instruction* Compiler::getInstruction(const uint16_t instruction)
     switch (instructionMapped)
     {
         case 0x2000: // CALL
-            return new CALL(instruction & 0x7FF);
+            return std::make_unique<CALL>(instruction);
         case 0x2800: // GOTO
-            return new GOTO(instruction & 0x7FF);
+            return std::make_unique<GOTO>(instruction);
         default:
             break;
     }

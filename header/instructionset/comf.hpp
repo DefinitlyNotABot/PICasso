@@ -8,6 +8,6 @@ class COMF  : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-      COMF(uint16_t destination, uint16_t file);
+      COMF(uint16_t instruction);
       void execute(); 
 };

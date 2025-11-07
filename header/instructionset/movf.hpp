@@ -8,7 +8,7 @@ class MOVF  : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   MOVF(uint16_t destination, uint16_t file);
+   MOVF(uint16_t instruction);
  void execute(); 
 
 };

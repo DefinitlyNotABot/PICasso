@@ -8,6 +8,6 @@ class INCFSZ  : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-      INCFSZ(uint16_t destination, uint16_t file);
+      INCFSZ(uint16_t instruction);
       void execute(); 
 };

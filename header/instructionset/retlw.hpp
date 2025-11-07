@@ -6,6 +6,6 @@ class RETLW : public Instruction
 {
    uint16_t file;
  public:
-   RETLW(uint16_t file);
+   RETLW(uint16_t instruction);
  void execute(); 
 };

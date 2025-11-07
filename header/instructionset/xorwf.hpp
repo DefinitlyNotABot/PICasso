@@ -8,6 +8,6 @@ class XORWF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   XORWF(uint16_t destination, uint16_t file);
+   XORWF(uint16_t instruction);
  void execute(); 
 };

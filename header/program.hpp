@@ -1,6 +1,6 @@
 #pragma once
 
-#include <vector>
+#include <memory>
 
 #include "logger.hpp"
 #include "instruction.hpp"
@@ -14,7 +14,7 @@ class Program
         Filereader filereader;
         Compiler compiler;
 
-        std::vector<Instruction*> instructionOrder;
+        std::vector<std::unique_ptr<Instruction>> instructionOrder;
 
     public:
         Program();

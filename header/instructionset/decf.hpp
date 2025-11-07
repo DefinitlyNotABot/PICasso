@@ -8,6 +8,6 @@ class DECF  : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-      DECF(uint16_t destination, uint16_t file);
+      DECF(uint16_t instruction);
       void execute(); 
 };

@@ -8,6 +8,6 @@ class SUBWF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   SUBWF(uint16_t destination, uint16_t file);
+   SUBWF(uint16_t instruction);
  void execute(); 
 };

@@ -7,6 +7,6 @@ class SUBLW : public Instruction
    private:
       uint16_t literal;
    public:
-   SUBLW(uint16_t literal);
+   SUBLW(uint16_t instruction);
  void execute(); 
 };

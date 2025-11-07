@@ -8,6 +8,6 @@ class IORWF : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   IORWF(uint16_t destination, uint16_t file);
+   IORWF(uint16_t instruction);
  void execute(); 
 };

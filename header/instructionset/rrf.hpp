@@ -8,6 +8,6 @@ class RRF   : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   RRF(uint16_t destination, uint16_t file);
+   RRF(uint16_t instruction);
  void execute(); 
 };

@@ -8,6 +8,6 @@ class RLF   : public Instruction
       uint16_t destination;
       uint16_t file;
    public:
-   RLF(uint16_t destination, uint16_t file);
+   RLF(uint16_t instruction);
  void execute(); 
 };
