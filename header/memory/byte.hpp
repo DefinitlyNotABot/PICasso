@@ -16,7 +16,7 @@ public:
     void setBit(uint8_t position, bool value);
 
     uint8_t getByte() const;
-    uint8_t getHighNibble(Nibble &nibble) const;
-    uint8_t getLowNibble(Nibble &nibble) const;
+    uint8_t getHighNibble() const;
+    uint8_t getLowNibble() const;
     bool getBit(uint8_t position) const;
 };

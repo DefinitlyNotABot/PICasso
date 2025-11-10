@@ -20,7 +20,7 @@ Ram::Ram()
 
 uint8_t Ram::readRegister(uint8_t address)
 {
-    if (address >= 255) throw std::runtime_error("Address out of range");
+    if (address > 255) throw std::runtime_error("Address out of range");
     
     return memory[address].readByte();
 }
