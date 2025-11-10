@@ -5,22 +5,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Include directory
-include_directories(${CMAKE_SOURCE_DIR}/headers)
+include_directories(${CMAKE_SOURCE_DIR}/header)
 
-# Gather all .cpp files from ./src
-file(GLOB_RECURSE SRC_FILES ${CMAKE_SOURCE_DIR}/src/*.cpp)
+# --- Bibliothek aus src ---
+file(GLOB_RECURSE PROJECT_SOURCES "${CMAKE_SOURCE_DIR}/src/*.cpp")
+add_library(MyMemoryLib STATIC ${PROJECT_SOURCES})
+target_include_directories(MyMemoryLib PUBLIC ${CMAKE_SOURCE_DIR}/header)
 
-# Define executable
-add_executable(${PROJECT_NAME} ${SRC_FILES})
-
-
-
-# Projektbibliothek bauen
-file(GLOB_RECURSE PROJECT_SOURCES "src/**/*.cpp")
-add_library(MyMemoryLib ${PROJECT_SOURCES})
-target_include_directories(MyMemoryLib PUBLIC src/header)
-
-# Catch2 über FetchContent einbinden
+# --- Catch2 einbinden ---
 include(FetchContent)
 FetchContent_Declare(
   catch2
@@ -29,14 +21,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(catch2)
 
-# Alle Testquellen automatisch sammeln
-file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
-
-# Test-Binär bauen
+# --- Tests aus /tests ---
+file(GLOB_RECURSE TEST_SOURCES "${CMAKE_SOURCE_DIR}/tests/*.cpp")
 add_executable(AllTests ${TEST_SOURCES})
 target_link_libraries(AllTests PRIVATE MyMemoryLib Catch2::Catch2)
-target_include_directories(AllTests PRIVATE src/header)
+target_include_directories(AllTests PRIVATE ${CMAKE_SOURCE_DIR}/header)
 
-# CTest
+# --- CTest aktivieren ---
 enable_testing()
 add_test(NAME AllTests COMMAND $<TARGET_FILE:AllTests>)
+
+
+# --- Executable für das Hauptprogramm ---
+add_executable(PICasso src/main.cpp)
+target_link_libraries(PICasso PRIVATE MyMemoryLib)
+target_include_directories(PICasso PRIVATE ${CMAKE_SOURCE_DIR}/header)
+
