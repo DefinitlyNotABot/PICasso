@@ -20,4 +20,7 @@ class Program
         Program();
 
         void loadProgram(std::string filename);
+
+        uint16_t getProgramLength();    
+        Instruction& getInstructionAt(uint16_t index);
 };

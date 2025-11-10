@@ -29,3 +29,15 @@ void Program::loadProgram(std::string filename)
 
     logger.log(std::string(("Successfully loaded file")));
 }
+
+
+
+
+uint16_t Program::getProgramLength(){
+    return instructionOrder.size();
+}
+
+
+Instruction& Program::getInstructionAt(uint16_t index) {
+    return *instructionOrder.at(index); // throws std::out_of_range if index invalid
+}
