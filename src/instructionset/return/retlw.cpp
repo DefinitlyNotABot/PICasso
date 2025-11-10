@@ -8,3 +8,9 @@ uint16_t RETLW::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string RETLW::getName()
+{
+    return "retlw";
+}
+

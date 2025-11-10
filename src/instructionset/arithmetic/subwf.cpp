@@ -9,3 +9,9 @@ uint16_t SUBWF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string SUBWF::getName()
+{
+    return "subwf";
+}
+

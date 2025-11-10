@@ -39,6 +39,7 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <iostream>
 
 
 Compiler::Compiler(): logger("Compiler")
@@ -72,6 +73,7 @@ std::vector<std::unique_ptr<Instruction>> Compiler::compileSourcecode(std::strin
 
         compilationOutput.push_back(std::move(instruction));
         logger.log(line);
+        std::cout << compilationOutput.back()->getName() << std::endl;
     }
 
 

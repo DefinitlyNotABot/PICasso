@@ -9,3 +9,9 @@ uint16_t IORWF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string IORWF::getName()
+{
+    return "iorwf";
+}
+

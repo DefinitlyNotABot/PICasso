@@ -9,3 +9,9 @@ uint16_t COMF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string COMF::getName()
+{
+    return "comf";
+}
+

@@ -9,3 +9,9 @@ uint16_t NOP::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string NOP::getName()
+{
+    return "nop";
+}
+

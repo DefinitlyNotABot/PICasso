@@ -9,3 +9,9 @@ uint16_t INCF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string INCF::getName()
+{
+    return "incf";
+}
+

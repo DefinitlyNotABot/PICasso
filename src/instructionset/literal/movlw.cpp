@@ -8,3 +8,9 @@ uint16_t MOVLW::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string MOVLW::getName()
+{
+    return "movlw";
+}
+

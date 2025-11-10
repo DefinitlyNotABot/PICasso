@@ -8,3 +8,9 @@ uint16_t XORLW::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string XORLW::getName()
+{
+    return "xorlw";
+}
+

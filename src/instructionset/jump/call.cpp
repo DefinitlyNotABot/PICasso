@@ -8,3 +8,9 @@ uint16_t CALL::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string CALL::getName()
+{
+    return "call";
+}
+

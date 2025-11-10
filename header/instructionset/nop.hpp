@@ -7,4 +7,6 @@ class NOP   : public Instruction
  public:
     NOP(uint16_t instruction);
     uint16_t execute(); 
+
+    std::string getName();
 };

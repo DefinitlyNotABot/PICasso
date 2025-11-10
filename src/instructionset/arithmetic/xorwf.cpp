@@ -9,3 +9,9 @@ uint16_t XORWF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string XORWF::getName()
+{
+    return "xorwf";
+}
+

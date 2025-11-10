@@ -1,6 +1,8 @@
+#include "instruction.hpp"
 #include "program.hpp"
 
 #include "alu.hpp"
+#include <iostream>
 
 int main()
 {
@@ -13,7 +15,10 @@ int main()
     ALU alu;
 
     for(uint16_t i = 0; i < p.getProgramLength(); i++){
-        alu.executeInstruction(p.getInstructionAt(i));
+        Instruction& inst = p.getInstructionAt(i);
+        std::cout << inst.getName() << " -> ";
+        alu.executeInstruction(inst);
+        
     }
 
     return 0;

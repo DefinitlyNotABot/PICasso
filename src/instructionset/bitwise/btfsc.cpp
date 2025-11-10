@@ -9,3 +9,9 @@ uint16_t BTFSC::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string BTFSC::getName()
+{
+    return "btfsc";
+}
+

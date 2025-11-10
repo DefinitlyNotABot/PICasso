@@ -9,3 +9,9 @@ uint16_t SWAPF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string SWAPF::getName()
+{
+    return "swapf";
+}
+

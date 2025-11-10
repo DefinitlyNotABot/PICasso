@@ -9,3 +9,9 @@ uint16_t BSF::execute()
 {
 return 0;
 }
+// Implementation of the instruction name getter
+std::string BSF::getName()
+{
+    return "bsf";
+}
+
