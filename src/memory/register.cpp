@@ -36,14 +36,12 @@ uint8_t Register::readByte() const
 
 uint8_t Register::readHighNibble() const
 {
-    Nibble highNibble;
-    return byte.getHighNibble(highNibble);
+    return byte.getHighNibble();
 }
 
 uint8_t Register::readLowNibble() const
 {
-    Nibble lowNibble;
-    return byte.getLowNibble(lowNibble);
+    return byte.getLowNibble();
 }
 
 bool Register::readBit(uint8_t bit) const

@@ -37,12 +37,12 @@ uint8_t Byte::getByte() const
     return (nibbles[1].getNibble() << 4) | nibbles[0].getNibble();
 }
 
-uint8_t Byte::getHighNibble(Nibble &nibble) const
+uint8_t Byte::getHighNibble() const
 {
     return nibbles[1].getNibble();
 }
 
-uint8_t Byte::getLowNibble(Nibble &nibble) const
+uint8_t Byte::getLowNibble() const
 {
     return nibbles[0].getNibble();
 }
