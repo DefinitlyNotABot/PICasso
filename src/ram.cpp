@@ -1,4 +1,4 @@
-#include "../header/ram.hpp"
+#include "ram.hpp"
 #include <stdexcept> 
 
 void Ram::reset()

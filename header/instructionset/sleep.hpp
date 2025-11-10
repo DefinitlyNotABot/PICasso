@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../instruction.hpp"
+#include "instruction.hpp"
 
 class SLEEP : public Instruction 
 {

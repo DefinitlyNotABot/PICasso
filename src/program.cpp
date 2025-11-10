@@ -1,4 +1,4 @@
-#include "../header/program.hpp"
+#include "program.hpp"
 
 
 Program::Program(): logger("Program")

@@ -1,9 +1,10 @@
-#include "../../header/instructionset/sleep.hpp"
+#include "sleep.hpp"
 
 SLEEP::SLEEP(uint16_t instruction){
     
 }
 
-void SLEEP::execute()
+uint16_t SLEEP::execute()
 {
+return 0;
 }

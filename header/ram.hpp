@@ -1,5 +1,5 @@
 #pragma once
-#include "memory/register.hpp"
+#include "register.hpp"
 
 class Ram
 {

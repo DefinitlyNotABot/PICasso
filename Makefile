@@ -7,7 +7,7 @@ all:
 	@cmake --build $(BUILD_DIR)
 
 run: all
-	@./$(BUILD_DIR)/MyProject
+	@./$(BUILD_DIR)/PICasso
 
 clean:
 	@rm -rf $(BUILD_DIR)
