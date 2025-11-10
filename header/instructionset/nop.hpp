@@ -1,10 +1,12 @@
 #pragma once
 
-#include "../instruction.hpp"
+#include "instruction.hpp"
 
 class NOP   : public Instruction 
 {
  public:
     NOP(uint16_t instruction);
-    void execute(); 
+    uint16_t execute(); 
+
+    std::string getName();
 };

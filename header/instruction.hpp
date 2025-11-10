@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 class Instruction
 {
-    private:
-        uint16_t param1;
-        uint16_t param2;
     public:
-        virtual void execute() = 0;
+        virtual uint16_t execute() = 0;
+        virtual std::string getName() = 0;
+        virtual ~Instruction() = default;
 };

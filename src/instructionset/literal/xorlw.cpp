@@ -1,0 +1,16 @@
+#include "xorlw.hpp"
+
+XORLW::XORLW(uint16_t instruction) {
+    literal = instruction & 0xFF;
+}
+
+uint16_t XORLW::execute()
+{
+return 0;
+}
+// Implementation of the instruction name getter
+std::string XORLW::getName()
+{
+    return "xorlw";
+}
+

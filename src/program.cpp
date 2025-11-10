@@ -1,4 +1,4 @@
-#include "../header/program.hpp"
+#include "program.hpp"
 
 
 Program::Program(): logger("Program")
@@ -28,4 +28,16 @@ void Program::loadProgram(std::string filename)
     instructionOrder = std::move(compiled);
 
     logger.log(std::string(("Successfully loaded file")));
+}
+
+
+
+
+uint16_t Program::getProgramLength(){
+    return instructionOrder.size();
+}
+
+
+Instruction& Program::getInstructionAt(uint16_t index) {
+    return *instructionOrder.at(index); // throws std::out_of_range if index invalid
 }

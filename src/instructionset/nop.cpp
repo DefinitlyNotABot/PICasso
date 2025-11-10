@@ -1,10 +1,17 @@
-#include "../../header/instructionset/nop.hpp"
+#include "nop.hpp"
 
 NOP::NOP(uint16_t instruction){
     
 }
 
 
-void NOP::execute()
+uint16_t NOP::execute()
 {
+return 0;
 }
+// Implementation of the instruction name getter
+std::string NOP::getName()
+{
+    return "nop";
+}
+

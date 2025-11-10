@@ -1,4 +1,4 @@
-#include "../header/logger.hpp"
+#include "logger.hpp"
 #include <iostream>
 
 const std::string Logger::filename = "PICasso.log";

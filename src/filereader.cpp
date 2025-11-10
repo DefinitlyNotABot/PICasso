@@ -1,7 +1,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "../header/filereader.hpp"
+#include "filereader.hpp"
 
 
 std::tuple<bool, std::string> Filereader::readFile(const std::string& filename)

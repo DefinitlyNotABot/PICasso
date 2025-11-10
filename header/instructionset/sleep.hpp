@@ -1,10 +1,12 @@
 #pragma once
 
-#include "../instruction.hpp"
+#include "instruction.hpp"
 
 class SLEEP : public Instruction 
 {
  public:
     SLEEP(uint16_t instruction);
- void execute(); 
+ uint16_t execute(); 
+
+    std::string getName();
 };
