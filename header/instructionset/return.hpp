@@ -2,9 +2,7 @@
 
 #include "../instruction.hpp"
 
-class RETURN: public Instruction 
+class Return: public Instruction 
 {
- public:
-    RETURN(uint16_t instruction);
- void execute(); 
+    public:
 };

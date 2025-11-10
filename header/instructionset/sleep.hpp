@@ -6,5 +6,5 @@ class SLEEP : public Instruction
 {
  public:
     SLEEP(uint16_t instruction);
- void execute(); 
+ uint16_t execute(); 
 };

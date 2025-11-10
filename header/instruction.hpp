@@ -2,11 +2,17 @@
 
 #include <cstdint>
 
+
 class Instruction
 {
+    enum Type{
+        ARITHMETIC,
+        BITWISE,
+        LITERAL,
+    };
+
     private:
-        uint16_t param1;
-        uint16_t param2;
+        uint16_t type;
     public:
-        virtual void execute() = 0;
+        virtual uint16_t execute() = 0;
 };
