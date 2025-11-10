@@ -61,7 +61,7 @@ std::vector<std::unique_ptr<Instruction>> Compiler::compileSourcecode(std::strin
             continue;
 
         std::string combined = line.substr(5, 4);
-        uint16_t number = static_cast<uint16_t>(std::stoi(combined, nullptr, 10));
+        uint16_t number = static_cast<uint16_t>(std::stoi(combined, nullptr, 16));
 
         std::unique_ptr<Instruction> instruction = getInstruction(number);
 
