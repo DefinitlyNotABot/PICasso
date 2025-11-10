@@ -2,7 +2,7 @@
 
 #include "instruction.hpp"
 
-class Bitwise   : public Instruction 
+class Bitwise   : public virtual Instruction 
 {  
     protected:
         uint8_t bit;

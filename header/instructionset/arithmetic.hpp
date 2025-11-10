@@ -2,7 +2,7 @@
 
 #include "instruction.hpp"
 
-class Arithmetic : public Instruction 
+class Arithmetic : public virtual Instruction 
 {
     protected:
         uint16_t destination;

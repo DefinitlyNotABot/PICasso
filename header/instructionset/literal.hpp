@@ -2,8 +2,8 @@
 
 #include "instruction.hpp"
 
-class Literal : public Instruction 
-{
+class Literal : public virtual Instruction 
+{ 
     protected:
         uint16_t literal;
 };

@@ -2,7 +2,7 @@
 
 #include "instruction.hpp"
 
-class Jump  : public Instruction 
+class Jump  : public virtual Instruction 
 {
     protected:
         uint16_t address;

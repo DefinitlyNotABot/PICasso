@@ -3,7 +3,7 @@
 #include "ret.hpp"
 #include "literal.hpp"
 
-class RETLW : public Literal
+class RETLW : public Literal, public Return
 {
   public:
     RETLW(uint16_t instruction);
