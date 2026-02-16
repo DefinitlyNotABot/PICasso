@@ -2,6 +2,7 @@
 
 PIC::PIC() : alu(), loadedProgram(), ram()
 {
+    Instruction::ram = std::shared_ptr<Ram>(&ram, [](Ram*) {});
 }
 
 PIC::~PIC()
