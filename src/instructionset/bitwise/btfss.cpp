@@ -7,6 +7,7 @@ BTFSS::BTFSS(uint16_t instruction) {
 
 uint16_t BTFSS::execute()
 {
+    // TODO: Implement skipping the next instruction when the bit is set
     return 0;
 }
 
