@@ -3,6 +3,7 @@
 PIC::PIC() : alu(), loadedProgram(), ram()
 {
     Instruction::ram = std::shared_ptr<Ram>(&ram, [](Ram*) {});
+    Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
 }
 
 PIC::~PIC()
