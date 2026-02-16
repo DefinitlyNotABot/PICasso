@@ -25,6 +25,8 @@ public:
 
     Ram();
     ~Ram();
+    Ram(const Ram&) = delete;
+    Ram& operator=(const Ram&) = delete;
     void reset();
     uint8_t readRegister(uint8_t address);
     void writeRegister(uint8_t address, uint8_t value);
