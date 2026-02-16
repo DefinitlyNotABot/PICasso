@@ -1,11 +1,13 @@
 # Simple Makefile wrapper for CMake
 BUILD_DIR := build
-PROJECT := PICasso
+PROJECT   := PICasso
+# Detect cores: nproc for Linux, sysctl for macOS
+JOBS      := $(shell nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
 
 all:
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake ..
-	@cmake --build $(BUILD_DIR)
+	@cmake -S . -B $(BUILD_DIR)
+	@cmake --build $(BUILD_DIR) -j $(JOBS)
 
 run: all
 	@./$(BUILD_DIR)/$(PROJECT)
@@ -15,12 +17,10 @@ clean:
 
 rebuild: clean all
 
-test:
-	make clean
-	make
+test: clean
 	@mkdir -p $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DBUILD_TESTING=ON ..
-	@cmake --build $(BUILD_DIR) --target tests_runner || true
+	@cmake -S . -B $(BUILD_DIR) -DBUILD_TESTING=ON
+	@cmake --build $(BUILD_DIR) --target tests_runner -j $(JOBS) || true
 	@cd $(BUILD_DIR) && if [ -f tests_runner ]; then ./tests_runner; else ctest --output-on-failure; fi
 
-.PHONY: all run clean rebuild tests
+.PHONY: all run clean rebuild test
