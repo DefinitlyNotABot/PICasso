@@ -7,6 +7,10 @@ SWAPF::SWAPF(uint16_t instruction) {
 
 uint16_t SWAPF::execute()
 {
+    loadCurrentValues();
+    uint16_t result = ((fileValue << 4) | (fileValue >> 4)) & 0xFF;
+    storeResult(result);
+
     return 0;
 }
 

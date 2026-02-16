@@ -6,6 +6,8 @@ MOVWF::MOVWF(uint16_t instruction) {
 
 uint16_t MOVWF::execute()
 {
+    loadCurrentValues();
+    storeResult(WValue);
     return 0;
 }
 

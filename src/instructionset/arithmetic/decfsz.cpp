@@ -7,6 +7,12 @@ DECFSZ::DECFSZ(uint16_t instruction) {
 
 uint16_t DECFSZ::execute()
 {
+    loadCurrentValues();
+    uint16_t result = (fileValue - 1) & 0xFF;
+    storeResult(result);
+
+    // TODO: jump when 0
+
     return 0;
 }
 

@@ -7,6 +7,16 @@ RLF::RLF(uint16_t instruction) {
 
 uint16_t RLF::execute()
 {
+    loadCurrentValues();
+
+    uint8_t carry = ram->readStatusBit(Ram::C) ? 1 : 0;
+    uint16_t result = ((fileValue << 1) | carry);
+
+    storeResult(result);
+
+    ram->writeStatusBit(Ram::C, (fileValue & 0x80) != 0);
+    SET_ZERO_FLAG
+
     return 0;
 }
 

@@ -7,6 +7,9 @@ MOVF::MOVF(uint16_t instruction) {
 
 uint16_t MOVF::execute()
 {
+    loadCurrentValues();
+    storeResult(fileValue);
+    ram->writeStatusBit(Ram::Z, (fileValue & 0xFF) == 0);
     return 0;
 }
 

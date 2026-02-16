@@ -7,6 +7,14 @@ ANDWF::ANDWF(uint16_t instruction) {
 
 uint16_t ANDWF::execute()
 {
+    loadCurrentValues();
+
+    uint16_t result = fileValue & WValue;
+
+    storeResult(result);
+
+    SET_ZERO_FLAG
+
     return 0;
 }
 
