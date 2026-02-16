@@ -7,9 +7,9 @@ DECF::DECF(uint16_t instruction) {
 
 uint16_t DECF::execute()
 {
-return 0;
+    return 0;
 }
-// Implementation of the instruction name getter
+
 std::string DECF::getName()
 {
     return "decf";

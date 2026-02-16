@@ -6,9 +6,9 @@ IORLW::IORLW(uint16_t instruction) {
 
 uint16_t IORLW::execute()
 {
-return 0;
+    return 0;
 }
-// Implementation of the instruction name getter
+
 std::string IORLW::getName()
 {
     return "iorlw";

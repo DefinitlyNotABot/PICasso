@@ -8,5 +8,5 @@ uint16_t Arithmetic::getDestination(){
 uint16_t Arithmetic::getFile(){
     return file;
 }
-// Implementation of the instruction name getter
+
 

@@ -6,9 +6,9 @@ SUBLW::SUBLW(uint16_t instruction) {
 
 uint16_t SUBLW::execute()
 {
-return 0;
+    return 0;
 }
-// Implementation of the instruction name getter
+
 std::string SUBLW::getName()
 {
     return "sublw";

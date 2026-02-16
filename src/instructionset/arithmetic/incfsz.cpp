@@ -7,9 +7,9 @@ INCFSZ::INCFSZ(uint16_t instruction) {
 
 uint16_t INCFSZ::execute()
 {
-return 0;
+    return 0;
 }
-// Implementation of the instruction name getter
+
 std::string INCFSZ::getName()
 {
     return "incfsz";

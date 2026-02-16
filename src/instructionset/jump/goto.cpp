@@ -6,9 +6,9 @@ GOTO::GOTO(uint16_t instruction) {
 
 uint16_t GOTO::execute()
 {
-return 0;
+    return 0;
 }
-// Implementation of the instruction name getter
+
 std::string GOTO::getName()
 {
     return "goto";
