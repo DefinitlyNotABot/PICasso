@@ -104,3 +104,13 @@ void Ram::writeLowNibble(uint8_t address, uint8_t value)
 
     memory[address]->writeLowNibble(value);
 }
+
+void Ram::writeStatusBit(STATUS bit, bool value)
+{
+    writeBit(STATUS_REGISTER_ADDRESS, static_cast<uint8_t>(bit), value);
+}
+
+bool Ram::readStatusBit(STATUS bit)
+{
+    return readBit(STATUS_REGISTER_ADDRESS, static_cast<uint8_t>(bit));
+}
