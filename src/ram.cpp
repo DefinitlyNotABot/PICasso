@@ -60,3 +60,47 @@ void Ram::writeRegister(uint8_t address, uint8_t value)
 
     memory[address]->writeByte(value);
 }
+
+void Ram::writeBit(uint8_t address, uint8_t bit, bool value)
+{
+    if (!memory[address])
+    {
+        throw std::runtime_error("Nullpointer write at address 0x" +
+                                 std::to_string(address));
+    }
+
+    memory[address]->writeBit(bit, value);
+}
+
+bool Ram::readBit(uint8_t address, uint8_t bit)
+{
+    if (!memory[address])
+    {
+        throw std::runtime_error("Nullpointer access at address 0x" +
+                                 std::to_string(address));
+    }
+
+    return memory[address]->readBit(bit);
+}
+
+void Ram::writeHighNibble(uint8_t address, uint8_t value)
+{
+    if (!memory[address])
+    {
+        throw std::runtime_error("Nullpointer write at address 0x" +
+                                 std::to_string(address));
+    }
+
+    memory[address]->writeHighNibble(value);
+}
+
+void Ram::writeLowNibble(uint8_t address, uint8_t value)
+{
+    if (!memory[address])
+    {
+        throw std::runtime_error("Nullpointer write at address 0x" +
+                                 std::to_string(address));
+    }
+
+    memory[address]->writeLowNibble(value);
+}
