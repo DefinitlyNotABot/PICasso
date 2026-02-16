@@ -6,6 +6,9 @@ XORLW::XORLW(uint16_t instruction) {
 
 uint16_t XORLW::execute()
 {
+    uint16_t result = literal ^ W->readByte();
+    W->writeByte(result);
+    SET_ZERO_FLAG_W
     return 0;
 }
 

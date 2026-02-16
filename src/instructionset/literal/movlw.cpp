@@ -6,6 +6,7 @@ MOVLW::MOVLW(uint16_t instruction) {
 
 uint16_t MOVLW::execute()
 {
+    W->writeByte(literal);
     return 0;
 }
 

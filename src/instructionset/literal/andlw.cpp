@@ -6,6 +6,9 @@ ANDLW::ANDLW(uint16_t instruction) {
 
 uint16_t ANDLW::execute()
 {
+    uint16_t result = literal & W->readByte();
+    W->writeByte(result);
+    SET_ZERO_FLAG_W
     return 0;
 }
 
