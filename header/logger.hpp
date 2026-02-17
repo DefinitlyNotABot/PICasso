@@ -6,16 +6,25 @@ class Logger
 {
     private:
         static const std::string filename;
-        static int loglevel;
-        static bool consoleOutput;
-
         std::string loggerID;
     
     public:
-        Logger(std::string name);
-        void log(std::string message, int loglvl = 1);
-        void log(char* message, int loglvl = 1);
+        enum LogLevel
+        {
+            INFO = 1,
+            WARNING = 2,
+            ERROR = 3
+        };
+        enum ConsoleOutput
+        {
+            DISABLED = 0,
+            ENABLED = 1
+        };
 
-        void setLogLevel(int loglvl);
-        void setConsoleOutput(bool enableOutput);
+        static LogLevel logLevel;
+        static ConsoleOutput consoleOutput;
+
+        Logger(std::string name);
+        void log(std::string message, LogLevel loglvl = INFO);
+        void log(char* message, LogLevel loglvl = INFO);
 };

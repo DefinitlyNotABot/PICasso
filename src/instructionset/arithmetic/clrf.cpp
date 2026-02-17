@@ -6,8 +6,8 @@ CLRF::CLRF(uint16_t instruction) {
 
 uint16_t CLRF::execute()
 {
-    ram->writeRegister(file, 0);
-    ram->writeStatusBit(Ram::Z, true);
+    memoryInterface->writeRegister(file, 0);
+    memoryInterface->writeStatusBit(MemoryInterface::StatusBits::Z, true);
     return 0;
 }
 

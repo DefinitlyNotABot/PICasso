@@ -6,6 +6,8 @@ RETLW::RETLW(uint16_t instruction) {
 
 uint16_t RETLW::execute()
 {
+    W->writeByte(literal);
+    memoryInterface->setProgramCounter(memoryInterface->popFromStack());
     return 0;
 }
 

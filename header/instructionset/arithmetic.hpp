@@ -2,7 +2,7 @@
 
 #include "instruction.hpp"
 
-#define SET_ZERO_FLAG ram->writeStatusBit(Ram::Z, (result & 0xFF) == 0);
+#define SET_ZERO_FLAG memoryInterface->writeStatusBit(MemoryInterface::StatusBits::Z, (result & 0xFF) == 0);
 
 class Arithmetic : public virtual Instruction 
 {

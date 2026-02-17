@@ -2,8 +2,8 @@
 #include <iostream>
 
 const std::string Logger::filename = "PICasso.log";
-int Logger::loglevel = 1;
-bool Logger::consoleOutput = true;
+Logger::LogLevel Logger::logLevel = Logger::INFO;
+Logger::ConsoleOutput Logger::consoleOutput = Logger::ENABLED;
 
 
 Logger::Logger(std::string name)
@@ -11,15 +11,15 @@ Logger::Logger(std::string name)
     loggerID = name;
 }
 
-void Logger::log(char* message, int loglvl)
+void Logger::log(char* message, LogLevel loglvl)
 {
     std::string s = message;
     log(s, loglvl);
 }
 
-void Logger::log(std::string message, int loglvl)
+void Logger::log(std::string message, LogLevel loglvl)
 {
-    if(loglvl < loglevel){
+    if(loglvl < logLevel){
         return;
     }
 

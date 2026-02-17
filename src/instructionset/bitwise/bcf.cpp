@@ -7,7 +7,7 @@ BCF::BCF(uint16_t instruction) {
 
 uint16_t BCF::execute()
 {
-    ram->writeBit(file, bit, false);
+    memoryInterface->writeBit(file, bit, false);
     return 0;
 }
 

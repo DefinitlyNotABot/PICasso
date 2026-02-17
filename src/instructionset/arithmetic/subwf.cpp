@@ -10,8 +10,8 @@ uint16_t SUBWF::execute()
     loadCurrentValues();
     uint16_t result = (fileValue - WValue) & 0xFF;
     storeResult(result);
-    ram->writeStatusBit(Ram::C, fileValue >= WValue);
-    ram->writeStatusBit(Ram::DC, (fileValue & 0x0F) >= (WValue & 0x0F));
+    memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, fileValue >= WValue);
+    memoryInterface->writeStatusBit(MemoryInterface::StatusBits::DC, (fileValue & 0x0F) >= (WValue & 0x0F));
     SET_ZERO_FLAG
 
     return 0;

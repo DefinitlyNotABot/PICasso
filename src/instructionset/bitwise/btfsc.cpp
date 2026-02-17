@@ -7,7 +7,9 @@ BTFSC::BTFSC(uint16_t instruction) {
 
 uint16_t BTFSC::execute()
 {
-    // TODO: Implement skipping the next instruction when the bit is clear
+    if(!memoryInterface->readBit(file, bit)){
+        memoryInterface->incrementProgramCounterLow();
+    }
     return 0;
 }
 

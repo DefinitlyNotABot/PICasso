@@ -2,6 +2,7 @@
 #include "program.hpp"
 #include "pic.hpp"
 #include "TerminalGUI.hpp"
+#include "logger.hpp"
 
 #include "alu.hpp"
 #include <iostream>
@@ -22,9 +23,11 @@ int main()
     TerminalGUI gui;
 
     std::thread guiThread(guiRuntimeThread, std::ref(gui));
+    Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
+    Logger::logLevel = Logger::LogLevel::INFO;
 
     PIC pic;
-    pic.loadProgram("progs/TPicSim1.LST");
+    pic.loadProgram("progs/TPicSim2.LST");
 
     std::cout << "Program loaded, starting execution..." << std::endl;
 
