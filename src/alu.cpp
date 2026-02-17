@@ -10,5 +10,4 @@
 void ALU::executeInstruction(Instruction& instruction)
 {
     uint16_t executionReturn = instruction.execute();
-    std::cout << "Executed instruction: " << instruction.getName() << ", returned: " << executionReturn << std::endl;
 }

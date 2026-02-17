@@ -1,4 +1,5 @@
 #include "pic.hpp"
+#include <iostream>
 
 PIC::PIC() : alu(), loadedProgram(), memoryInterface()
 {
@@ -38,5 +39,7 @@ void PIC::step(){
 
     Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
     alu.executeInstruction(currentInstruction);
+
+    std::cout << "PCL: " << static_cast<int>(programCounter) << " Executed instruction: " << currentInstruction.getName() << std::endl;
     
 }
