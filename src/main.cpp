@@ -4,6 +4,11 @@
 
 #include "alu.hpp"
 #include <iostream>
+#include <thread>
+
+void picRuntimeThread(PIC& pic) {
+    pic.run();
+}
 
 int main()
 {
@@ -13,7 +18,8 @@ int main()
 
     std::cout << "Program loaded, starting execution..." << std::endl;
 
-    pic.run();
+    std::thread t(picRuntimeThread, std::ref(pic));
+    t.join();
 
     return 0;
 }
