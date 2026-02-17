@@ -12,7 +12,9 @@ uint16_t INCFSZ::execute()
     storeResult(result);
     SET_ZERO_FLAG
 
-    // TODO: jump when 0
+    if(result == 0){
+        memoryInterface->incrementProgramCounterLow();
+    }
 
     return 0;
 }

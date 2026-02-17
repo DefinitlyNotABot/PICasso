@@ -11,7 +11,9 @@ uint16_t DECFSZ::execute()
     uint16_t result = (fileValue - 1) & 0xFF;
     storeResult(result);
 
-    // TODO: jump when 0
+    if(result == 0){
+        memoryInterface->incrementProgramCounterLow();
+    }
 
     return 0;
 }
