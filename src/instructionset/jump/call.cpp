@@ -6,6 +6,8 @@ CALL::CALL(uint16_t instruction) {
 
 uint16_t CALL::execute()
 {
+    memoryInterface->pushToStack(memoryInterface->getProgramCounter());
+    memoryInterface->setProgramCounter(address);
     return 0;
 }
 

@@ -7,7 +7,7 @@ BSF::BSF(uint16_t instruction) {
 
 uint16_t BSF::execute()
 {
-    ram->writeBit(file, bit, true);
+    memoryInterface->writeBit(file, bit, true);
     return 0;
 }
 

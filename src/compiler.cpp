@@ -1,39 +1,5 @@
 #include "compiler.hpp"
-#include "addwf.hpp"
-#include "andwf.hpp"
-#include "clrf.hpp"
-#include "clrw.hpp"
-#include "comf.hpp"
-#include "decf.hpp"
-#include "decfsz.hpp"
-#include "incf.hpp"
-#include "incfsz.hpp"
-#include "iorwf.hpp"
-#include "movf.hpp"
-#include "movwf.hpp"
-#include "nop.hpp"
-#include "rlf.hpp"
-#include "rrf.hpp"
-#include "subwf.hpp"
-#include "swapf.hpp"
-#include "xorwf.hpp"
-#include "bcf.hpp"
-#include "bsf.hpp"
-#include "btfsc.hpp"
-#include "btfss.hpp"
-#include "addlw.hpp"
-#include "andlw.hpp"
-#include "call.hpp"
-#include "clrwdt.hpp"
-#include "goto.hpp"
-#include "iorlw.hpp"
-#include "movlw.hpp"
-#include "retfie.hpp"
-#include "retlw.hpp"
-#include "return.hpp"
-#include "sleep.hpp"
-#include "sublw.hpp"
-#include "xorlw.hpp"
+#include "instructionList.hpp"
 
 
 #include <vector>
@@ -66,14 +32,13 @@ std::vector<std::unique_ptr<Instruction>> Compiler::compileSourcecode(std::strin
         std::unique_ptr<Instruction> instruction = getInstruction(number);
 
         if(instruction == nullptr){
-            logger.log("ERROR: Invalid instruction at " + line);
+            logger.log("ERROR: Invalid instruction at " + line, Logger::LogLevel::ERROR);
             compilationOutput.clear();
             return {};
         }
 
         compilationOutput.push_back(std::move(instruction));
-        logger.log(line);
-        std::cout << compilationOutput.back()->getName() << std::endl;
+        logger.log(line, Logger::LogLevel::INFO);
     }
 
 
