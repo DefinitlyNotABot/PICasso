@@ -32,14 +32,13 @@ std::vector<std::unique_ptr<Instruction>> Compiler::compileSourcecode(std::strin
         std::unique_ptr<Instruction> instruction = getInstruction(number);
 
         if(instruction == nullptr){
-            logger.log("ERROR: Invalid instruction at " + line);
+            logger.log("ERROR: Invalid instruction at " + line, Logger::LogLevel::ERROR);
             compilationOutput.clear();
             return {};
         }
 
         compilationOutput.push_back(std::move(instruction));
-        logger.log(line);
-        std::cout << compilationOutput.back()->getName() << std::endl;
+        logger.log(line, Logger::LogLevel::INFO);
     }
 
 

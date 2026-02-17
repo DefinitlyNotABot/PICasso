@@ -13,21 +13,21 @@ void Program::loadProgram(std::string filename)
 
     if(!validFileRead)
     {
-        logger.log(std::string("Received invalid file"));
+        logger.log(std::string("Received invalid file"), Logger::LogLevel::ERROR);
         return;
     }
 
     std::vector<std::unique_ptr<Instruction>> compiled = compiler.compileSourcecode(fileContent);
 
     if(compiled.empty()){
-        logger.log(std::string(("Compilation failed")));
+        logger.log(std::string("Compilation failed"), Logger::LogLevel::ERROR);
         return;
     }
 
     instructionOrder.clear();
     instructionOrder = std::move(compiled);
 
-    logger.log(std::string(("Successfully loaded file")));
+    logger.log(std::string(("Successfully loaded file")), Logger::LogLevel::INFO);
 }
 
 
