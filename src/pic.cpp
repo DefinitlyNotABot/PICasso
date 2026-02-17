@@ -34,7 +34,9 @@ void PIC::step(){
     }
 
     uint8_t programCounter = memoryInterface.getProgramCounterLow();
+    memoryInterface.incrementProgramCounterLow();
+
     Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
     alu.executeInstruction(currentInstruction);
-    memoryInterface.setProgramCounterLow(programCounter + 1);
+    
 }

@@ -47,6 +47,7 @@ class MemoryInterface
 
         uint8_t getProgramCounterLow();
         void setProgramCounterLow(uint8_t value);
+        void incrementProgramCounterLow();
 
         
 };

@@ -58,3 +58,9 @@ void MemoryInterface::setProgramCounterLow(uint8_t value)
 {
     ram.writeRegister(RegisterAddresses::PCL, value);
 }
+
+void MemoryInterface::incrementProgramCounterLow()
+{
+    uint8_t pcl = getProgramCounterLow();
+    setProgramCounterLow(pcl + 1);
+}
