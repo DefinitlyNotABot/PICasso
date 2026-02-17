@@ -13,8 +13,8 @@ uint16_t ADDWF::execute()
 
     storeResult(result);
 
-    ram->writeStatusBit(Ram::C, result > 0xFF);
-    ram->writeStatusBit(Ram::DC, ((fileValue & 0x0F) + (WValue & 0x0F)) > 0x0F);
+    memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, result > 0xFF);
+    memoryInterface->writeStatusBit(MemoryInterface::StatusBits::DC, ((fileValue & 0x0F) + (WValue & 0x0F)) > 0x0F);
     SET_ZERO_FLAG
 
     return 0;

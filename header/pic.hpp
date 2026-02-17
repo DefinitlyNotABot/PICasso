@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ram.hpp"
+#include "memoryInterface.hpp"
 #include "alu.hpp"
 #include "program.hpp"
 #include "register.hpp"
@@ -9,7 +9,7 @@ class PIC{
     private:
         ALU alu;
         Program loadedProgram;
-        Ram ram;
+        MemoryInterface memoryInterface;
         Register W;
 
     public:

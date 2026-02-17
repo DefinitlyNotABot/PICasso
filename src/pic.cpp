@@ -1,8 +1,8 @@
 #include "pic.hpp"
 
-PIC::PIC() : alu(), loadedProgram(), ram()
+PIC::PIC() : alu(), loadedProgram(), memoryInterface()
 {
-    Instruction::ram = std::shared_ptr<Ram>(&ram, [](Ram*) {});
+    Instruction::memoryInterface = std::shared_ptr<MemoryInterface>(&memoryInterface, [](MemoryInterface*) {});
     Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
 }
 
