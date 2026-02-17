@@ -11,7 +11,8 @@ void Stack::push(uint8_t value)
     {
         logger.log(std::string("Stack overflow"), Logger::LogLevel::WARNING);
     }
-    stack[++stackPointer % 8] = value;
+    stack[stackPointer] = value;
+    stackPointer = (stackPointer + 1) % 8;
 }
 
 uint8_t Stack::pop()
@@ -20,7 +21,8 @@ uint8_t Stack::pop()
     {
         logger.log(std::string("Stack underflow"), Logger::LogLevel::WARNING);
     }
-    return stack[--stackPointer % 8]; // Wrap around if stack pointer goes below 0
+    stackPointer = (stackPointer - 1 + 8) % 8; // -1 to move back, +8 to handle negative wrap-around, %8 to wrap around
+    return stack[stackPointer];
 }
 
 void Stack::reset()
