@@ -11,7 +11,7 @@ void Stack::push(uint8_t value)
     {
         logger.log(std::string("Stack overflow"), Logger::LogLevel::WARNING);
     }
-    stack[++stackPointer % 8] = value;
+    stack[stackPointer++ % 8] = value;
 }
 
 uint8_t Stack::pop()
