@@ -8,7 +8,7 @@ class MemoryInterface
         Ram ram;
 
     public:
-        MemoryInterface() = default;
+        MemoryInterface();
         ~MemoryInterface() = default;
 
         enum StatusBits {
