@@ -1,6 +1,6 @@
 #include "memoryInterface.hpp"
 
-MemoryInterface::MemoryInterface(): ram()
+MemoryInterface::MemoryInterface(): ram(), stack()
 {
 }
 
@@ -47,6 +47,7 @@ bool MemoryInterface::readStatusBit(StatusBits bit)
 void MemoryInterface::reset()
 {
     ram.reset();
+    stack.reset();
 }
 
 uint8_t MemoryInterface::getProgramCounter()
@@ -63,4 +64,14 @@ void MemoryInterface::incrementProgramCounterLow()
 {
     uint8_t pcl = getProgramCounter();
     setProgramCounter(pcl + 1);
+}
+
+void MemoryInterface::pushToStack(uint8_t value)
+{
+    stack.push(value);
+}
+
+uint8_t MemoryInterface::popFromStack()
+{
+    return stack.pop();
 }

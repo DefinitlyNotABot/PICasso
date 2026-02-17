@@ -1,11 +1,14 @@
 #pragma once
 
 #include "ram.hpp"
+#include "stack.hpp"
 
 class MemoryInterface
 {
     private:
         Ram ram;
+        Stack stack;
+
 
     public:
         MemoryInterface();
@@ -49,5 +52,7 @@ class MemoryInterface
         void setProgramCounter(uint8_t value);
         void incrementProgramCounterLow();
 
+        void pushToStack(uint8_t value);
+        uint8_t popFromStack();
         
 };
