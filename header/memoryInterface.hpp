@@ -43,6 +43,8 @@ class MemoryInterface
         void writeStatusBit(StatusBits bit, bool value);
         bool readStatusBit(StatusBits bit);
 
+        void reset();
+
         uint8_t getProgramCounterLow();
         void setProgramCounterLow(uint8_t value);
 

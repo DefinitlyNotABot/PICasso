@@ -17,4 +17,6 @@ class PIC{
         ~PIC();
         void loadProgram(const std::string& program);
         void run();
+        void reset();
+        void step();
 };

@@ -1,1 +1,0 @@
-git ls-files '*.cpp' '*.hpp' | xargs wc -l

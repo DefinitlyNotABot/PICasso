@@ -15,12 +15,26 @@ void PIC::loadProgram(const std::string& program)
     loadedProgram.loadProgram(program);
 }
 
+void PIC::reset(){
+    memoryInterface.reset();
+    W.writeByte(0);
+}
+
 void PIC::run()
 {
-    // loop through all instructions in loadedProgram and execute them using alu
-    for (uint16_t i = 0; i < loadedProgram.getProgramLength(); i++)
-    {
-        Instruction& inst = loadedProgram.getInstructionAt(i);
-        alu.executeInstruction(inst);
+    for(int i = 0; i < loadedProgram.getProgramLength(); i++){
+        step();
     }
+}
+
+void PIC::step(){
+    if (loadedProgram.getProgramLength() == 0)
+    {
+        throw std::runtime_error("No program loaded");
+    }
+
+    uint8_t programCounter = memoryInterface.getProgramCounterLow();
+    Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
+    alu.executeInstruction(currentInstruction);
+    memoryInterface.setProgramCounterLow(programCounter + 1);
 }

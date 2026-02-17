@@ -43,3 +43,18 @@ bool MemoryInterface::readStatusBit(StatusBits bit)
 {
     return ram.readBit(RegisterAddresses::STATUS, static_cast<uint8_t>(bit));
 }
+
+void MemoryInterface::reset()
+{
+    ram.reset();
+}
+
+uint8_t MemoryInterface::getProgramCounterLow()
+{
+    return ram.readRegister(RegisterAddresses::PCL);
+}
+
+void MemoryInterface::setProgramCounterLow(uint8_t value)
+{
+    ram.writeRegister(RegisterAddresses::PCL, value);
+}
