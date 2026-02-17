@@ -49,18 +49,18 @@ void MemoryInterface::reset()
     ram.reset();
 }
 
-uint8_t MemoryInterface::getProgramCounterLow()
+uint8_t MemoryInterface::getProgramCounter()
 {
     return ram.readRegister(RegisterAddresses::PCL);
 }
 
-void MemoryInterface::setProgramCounterLow(uint8_t value)
+void MemoryInterface::setProgramCounter(uint8_t value)
 {
     ram.writeRegister(RegisterAddresses::PCL, value);
 }
 
 void MemoryInterface::incrementProgramCounterLow()
 {
-    uint8_t pcl = getProgramCounterLow();
-    setProgramCounterLow(pcl + 1);
+    uint8_t pcl = getProgramCounter();
+    setProgramCounter(pcl + 1);
 }

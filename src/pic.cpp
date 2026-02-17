@@ -23,7 +23,7 @@ void PIC::reset(){
 
 void PIC::run()
 {
-    for(int i = 0; i < loadedProgram.getProgramLength(); i++){
+    for(int i = 0; i < 10; i++){
         step();
     }
 }
@@ -34,7 +34,7 @@ void PIC::step(){
         throw std::runtime_error("No program loaded");
     }
 
-    uint8_t programCounter = memoryInterface.getProgramCounterLow();
+    uint8_t programCounter = memoryInterface.getProgramCounter();
     memoryInterface.incrementProgramCounterLow();
 
     Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);

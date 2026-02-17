@@ -6,6 +6,7 @@ GOTO::GOTO(uint16_t instruction) {
 
 uint16_t GOTO::execute()
 {
+    memoryInterface->setProgramCounter(address);
     return 0;
 }
 
