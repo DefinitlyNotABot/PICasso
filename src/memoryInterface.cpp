@@ -75,3 +75,8 @@ uint8_t MemoryInterface::popFromStack()
 {
     return stack.pop();
 }
+
+int* MemoryInterface::readRAM()
+{
+    return ram.readRAM();
+}
