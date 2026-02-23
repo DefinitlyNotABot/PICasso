@@ -90,6 +90,7 @@ TEST_CASE("Test all progs", "[validate]") {
         }
     }
     // Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
+    Logger::disableLogger("Compiler");
     for (const auto& testFile : testFiles) {
         PIC pic;
         std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST"; // replace .json with .LST

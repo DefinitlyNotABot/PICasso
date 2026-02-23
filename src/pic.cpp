@@ -64,9 +64,11 @@ void PIC::printStep(Instruction& instruction){
     std::cout << "DC: " << memoryInterface.readStatusBit(MemoryInterface::DC) << " ";
     std::cout << "Z: " << memoryInterface.readStatusBit(MemoryInterface::Z) << std::endl;
     */
+
+    // add ram:0Ch and ram:0Dh
     std::stringstream ss;
     ss << "PCL: " << static_cast<int>(memoryInterface.getProgramCounter()) << " Command: " << std::left << std::setw(10) << instruction.getName() << std::right << " W: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << " C: " << memoryInterface.readStatusBit(MemoryInterface::C) << " DC: " << memoryInterface.readStatusBit(MemoryInterface::DC) << " Z: " << memoryInterface.readStatusBit(MemoryInterface::Z);
+       << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << " C: " << memoryInterface.readStatusBit(MemoryInterface::C) << " DC: " << memoryInterface.readStatusBit(MemoryInterface::DC) << " Z: " << memoryInterface.readStatusBit(MemoryInterface::Z) << " RAM:0Ch: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface.readRegister(0x0C)) << " RAM:0Dh: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface.readRegister(0x0D));
     logger.log(ss.str());
 }
 

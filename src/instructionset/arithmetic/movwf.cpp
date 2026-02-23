@@ -2,6 +2,7 @@
 
 MOVWF::MOVWF(uint16_t instruction) {
     file = instruction & 0b01111111;
+    destination = 1;
 }
 
 uint16_t MOVWF::execute()
