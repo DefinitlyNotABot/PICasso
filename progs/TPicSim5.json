@@ -1,0 +1,28 @@
+{
+  "test_name": "TPicSim5_Bit_Operations",
+  "steps": [
+    { "pc": "0000", "expected": { "W": "11h" } },
+    { "pc": "0001", "expected": { "ram:0Ch": "11h" } },
+    { "pc": "0002", "expected": { "ram:0Dh": "00h", "Z": "1" } },
+    { "pc": "0003", "expected": { "ram:0Ch": "91h" } },
+    { "pc": "0004", "expected": { "ram:0Ch": "99h" } },
+    { "pc": "0005", "expected": { "ram:0Ch": "89h" } },
+    { "pc": "0006", "expected": { "ram:0Ch": "88h" } },
+    
+    { "pc": "0007", "expected": { "pc": "0009" } }, 
+    { "pc": "0009", "expected": { "ram:0Dh": "01h", "Z": "0" } },
+    
+    { "pc": "000A", "expected": { "pc": "000B" } },
+    { "pc": "000B", "expected": { "ram:0Dh": "02h" } },
+    { "pc": "000C", "expected": { "ram:0Dh": "03h" } },
+    
+    { "pc": "000D", "expected": { "pc": "000E" } },
+    { "pc": "000E", "expected": { "ram:0Dh": "04h" } },
+    { "pc": "000F", "expected": { "ram:0Dh": "05h" } },
+    
+    { "pc": "0010", "expected": { "pc": "0012" } },
+    { "pc": "0012", "expected": { "ram:0Dh": "04h" } },
+    
+    { "pc": "0013", "expected": { "pc": "0013" } }
+  ]
+}
