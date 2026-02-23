@@ -6,6 +6,7 @@
 #include <cstdarg>
 #include <curses.h>
 #include <exception>
+#include <fstream>
 #include <iomanip>
 #include <optional>
 #include <sstream>
@@ -14,6 +15,15 @@
 #include <vector>
 
 namespace {
+
+constexpr int kAsmPanelLeft = 32;
+constexpr int kAsmTextWidth = 80;
+constexpr int kAsmLinePrefixWidth = 6; // "%3d%s| "
+constexpr int kAsmPanelRight = kAsmPanelLeft + kAsmLinePrefixWidth + kAsmTextWidth - 1;
+constexpr int kControlPanelLeft = kAsmPanelRight + 3;
+constexpr int kControlPanelContentLeft = kControlPanelLeft + 13;
+constexpr int kRequiredTerminalWidth = kControlPanelContentLeft + 22;
+constexpr int kRequiredTerminalHeight = 33;
 
 enum class HitType {
     MemoryCell,
@@ -185,6 +195,53 @@ bool parseHexByte(const std::string& text, uint8_t& output)
     return true;
 }
 
+bool parseLstInstructionIndex(const std::string& line, uint16_t& index)
+{
+    if (line.size() < 4)
+    {
+        return false;
+    }
+
+    const std::string token = line.substr(0, 4);
+    for (char c : token)
+    {
+        if (!std::isxdigit(static_cast<unsigned char>(c)))
+        {
+            return false;
+        }
+    }
+
+    index = static_cast<uint16_t>(std::stoul(token, nullptr, 16));
+    return true;
+}
+
+std::vector<std::string> loadFileLines(const std::string& filePath)
+{
+    std::vector<std::string> lines;
+    if (filePath.empty())
+    {
+        return lines;
+    }
+
+    std::ifstream input(filePath);
+    if (!input.is_open())
+    {
+        return lines;
+    }
+
+    std::string line;
+    while (std::getline(input, line))
+    {
+        if (!line.empty() && line.back() == '\r')
+        {
+            line.pop_back();
+        }
+        lines.push_back(line);
+    }
+
+    return lines;
+}
+
 std::optional<std::string> promptInput(const std::string& prompt)
 {
     int maxY = 0;
@@ -308,52 +365,64 @@ void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes, 
     }
 }
 
-void drawAsmPanel(PIC& pic, const PICSnapshot& snapshot)
+void drawAsmPanel(const PICSnapshot& snapshot, const std::vector<std::string>& fileLines)
 {
-    int left = 32;
+    int left = kAsmPanelLeft;
     int top = 9;
+    constexpr int asmTextWidth = kAsmTextWidth;
 
     printWithColor(top, left, CP_HEADER, A_BOLD, "ASM code");
 
-    uint16_t programLength = snapshot.programLength;
     uint16_t pc = snapshot.programCounter;
+
+    int currentFileLine = 0;
+    bool foundCurrentLine = false;
+    for (int i = 0; i < static_cast<int>(fileLines.size()); ++i)
+    {
+        uint16_t lstIndex = 0;
+        if (parseLstInstructionIndex(fileLines[static_cast<size_t>(i)], lstIndex) && lstIndex == pc)
+        {
+            currentFileLine = i;
+            foundCurrentLine = true;
+            break;
+        }
+    }
 
     int maxRows = 20;
     int start = 0;
-    if (pc > 5)
+    if (foundCurrentLine && currentFileLine > 5)
     {
-        start = static_cast<int>(pc) - 5;
+        start = currentFileLine - 5;
     }
 
     for (int row = 0; row < maxRows; ++row)
     {
         int lineIndex = start + row;
         int y = top + 1 + row;
+        int displayLineNumber = lineIndex + 1;
 
-        if (lineIndex >= programLength)
+        if (lineIndex >= static_cast<int>(fileLines.size()))
         {
-            printWithColor(y, left, CP_LABEL, 0, "%-3d|", row + 1);
+            printWithColor(y, left, CP_LABEL, 0, "%3d|", displayLineNumber);
             continue;
         }
 
-        std::string instructionName;
-        std::string errorMessage;
-        bool ok = pic.tryGetInstructionName(static_cast<uint16_t>(lineIndex), instructionName, &errorMessage);
-        if (!ok)
-        {
-            instructionName = "<invalid>";
-        }
+        std::string lineText = fileLines[static_cast<size_t>(lineIndex)];
 
-        const char* marker = (lineIndex == pc) ? ">" : " ";
-        const short linePair = (lineIndex == pc) ? CP_HIGHLIGHT : CP_VALUE;
-        const int lineAttr = (lineIndex == pc) ? A_BOLD : 0;
-        printWithColor(y, left, linePair, lineAttr, "%2d%s| %-12s", row + 1, marker, instructionName.c_str());
+        uint16_t lstIndex = 0;
+        const bool indexAvailable = parseLstInstructionIndex(lineText, lstIndex);
+        const bool isCurrentInstruction = indexAvailable && lstIndex == pc;
+
+        const char* marker = isCurrentInstruction ? ">" : " ";
+        const short linePair = isCurrentInstruction ? CP_HIGHLIGHT : CP_VALUE;
+        const int lineAttr = isCurrentInstruction ? A_BOLD : 0;
+        printWithColor(y, left, linePair, lineAttr, "%3d%s| %-*.*s", displayLineNumber, marker, asmTextWidth, asmTextWidth, lineText.c_str());
     }
 }
 
 void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxes)
 {
-    int x = 92;
+    int x = kControlPanelLeft;
     printWithColor(9, x, CP_BUTTON, A_BOLD, "[load file]");
     hitBoxes.push_back(HitBox{9, x, 11, 1, HitType::LoadButton, 0, 0});
 
@@ -379,7 +448,7 @@ void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxe
 
 void handleLoadFile(PIC& pic, SimulationState& state)
 {
-    auto text = promptInput("Program path: ");
+    auto text = promptInput("File path: ");
     if (!text || text->empty())
     {
         setStatus(state, "Load canceled");
@@ -392,7 +461,7 @@ void handleLoadFile(PIC& pic, SimulationState& state)
         {
             std::lock_guard<std::mutex> lock(state.statusMutex);
             state.loadedProgramPath = *text;
-            state.statusMessage = "Loaded " + *text;
+            state.statusMessage = "Loaded file " + *text;
         }
     }
     catch (const std::exception& ex)
@@ -496,6 +565,8 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
     initializeColors();
     std::optional<uint8_t> selectedRamAddress;
     std::optional<uint8_t> pendingRamEditAddress;
+    std::string shownFilePath;
+    std::vector<std::string> shownFileLines;
 
     bool ncursesActive = true;
 
@@ -510,23 +581,29 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
         int maxX = 0;
         getmaxyx(stdscr, maxY, maxX);
 
-        if (maxY < 33 || maxX < 130)
+        if (maxY < kRequiredTerminalHeight || maxX < kRequiredTerminalWidth)
         {
-            printWithColor(0, 0, CP_STATUS_WARN, A_BOLD, "Terminal too small. Need at least 130x33.");
+            printWithColor(0, 0, CP_STATUS_WARN, A_BOLD, "Terminal too small. Need at least %dx%d.", kRequiredTerminalWidth, kRequiredTerminalHeight);
             printWithColor(1, 0, CP_STATUS_WARN, 0, "Current: %dx%d", maxX, maxY);
         }
         else
         {
-            drawTopBits(snapshot, hitBoxes);
-            drawMemoryGrid(snapshot, hitBoxes, selectedRamAddress);
-            drawAsmPanel(pic, snapshot);
-            drawControlPanel(state, hitBoxes);
-
             std::string loadedPath;
             {
                 std::lock_guard<std::mutex> lock(state.statusMutex);
                 loadedPath = state.loadedProgramPath;
             }
+
+            if (loadedPath != shownFilePath)
+            {
+                shownFilePath = loadedPath;
+                shownFileLines = loadFileLines(shownFilePath);
+            }
+
+            drawTopBits(snapshot, hitBoxes);
+            drawMemoryGrid(snapshot, hitBoxes, selectedRamAddress);
+            drawAsmPanel(snapshot, shownFileLines);
+            drawControlPanel(state, hitBoxes);
 
             if (!loadedPath.empty())
             {
