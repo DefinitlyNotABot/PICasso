@@ -64,10 +64,15 @@ add_test(NAME AllTests COMMAND $<TARGET_FILE:AllTests>)
 
 
 # --- Executable für das Hauptprogramm ---
-add_executable(PICasso src/main.cpp)
+find_package(Curses REQUIRED)
+find_package(Threads REQUIRED)
+
+add_executable(PICasso src/main.cpp terminal/terminal_ui.cpp)
 
 # Linking MyMemoryLib automatically pulls in the PUBLIC include directories.
 target_link_libraries(PICasso PRIVATE MyMemoryLib)
+target_link_libraries(PICasso PRIVATE ${CURSES_LIBRARIES} Threads::Threads)
+target_include_directories(PICasso PRIVATE ${CURSES_INCLUDE_DIR})
 
 # NOTE: The last target_include_directories block from your original file
 # is now redundant because the include paths are already applied to the
