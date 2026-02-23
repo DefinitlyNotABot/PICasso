@@ -1,0 +1,972 @@
+{
+  "steps": [
+    {
+      "expected": {
+        "W": "20h"
+      },
+      "pc": "0000"
+    },
+    {
+      "expected": {
+        "ram:0Ch": "20h"
+      },
+      "pc": "0001"
+    },
+    {
+      "expected": {
+        "W": "10h"
+      },
+      "pc": "0002"
+    },
+    {
+      "expected": {},
+      "pc": "0003"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "10h"
+      },
+      "pc": "0004"
+    },
+    {
+      "expected": {
+        "W": "20h"
+      },
+      "pc": "0005"
+    },
+    {
+      "expected": {
+        "ram:10h": "20h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "21h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Fh"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:11h": "21h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "22h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Eh"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:12h": "22h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "23h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Dh"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:13h": "23h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "24h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Ch"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:14h": "24h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "25h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Bh"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:15h": "25h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "26h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "0Ah"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:16h": "26h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "27h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "09h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:17h": "27h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "28h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "08h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:18h": "28h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "29h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "07h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:19h": "29h"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Ah"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "06h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Ah": "2Ah"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Bh"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "05h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Bh": "2Bh"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Ch"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "04h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Ch": "2Ch"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Dh"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "03h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Dh": "2Dh"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Eh"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "02h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Eh": "2Eh"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "W": "2Fh"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "01h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "pc": "0006"
+      },
+      "pc": "000A"
+    },
+    {
+      "expected": {
+        "ram:1Fh": "2Fh"
+      },
+      "pc": "0006"
+    },
+    {
+      "expected": {
+        "DC": "1",
+        "W": "30h"
+      },
+      "pc": "0007"
+    },
+    {
+      "expected": {},
+      "pc": "0008"
+    },
+    {
+      "expected": {
+        "pc": "000B",
+        "ram:0Dh": "00h"
+      },
+      "pc": "0009"
+    },
+    {
+      "expected": {
+        "W": "1Fh"
+      },
+      "pc": "000B"
+    },
+    {
+      "expected": {},
+      "pc": "000C"
+    },
+    {
+      "expected": {
+        "W": "F0h"
+      },
+      "pc": "000D"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F0h"
+      },
+      "pc": "000E"
+    },
+    {
+      "expected": {
+        "W": "00h",
+        "Z": "1"
+      },
+      "pc": "000F"
+    },
+    {
+      "expected": {
+        "DC": "0",
+        "W": "2Fh",
+        "Z": "0"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F1h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "DC": "1",
+        "W": "5Dh"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F2h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "8Ah"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F3h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "B6h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F4h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "E1h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F5h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "C": "1",
+        "DC": "0",
+        "W": "0Bh"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F6h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "C": "0",
+        "DC": "1",
+        "W": "34h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F7h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "DC": "0",
+        "W": "5Ch"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F8h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "DC": "1",
+        "W": "83h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "F9h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "DC": "0",
+        "W": "A9h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FAh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "CEh"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FBh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "DC": "1",
+        "W": "F2h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FCh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "C": "1",
+        "DC": "0",
+        "W": "15h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FDh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "C": "0",
+        "W": "37h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FEh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "58h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "FFh"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "pc": "0010"
+      },
+      "pc": "0013"
+    },
+    {
+      "expected": {
+        "W": "78h"
+      },
+      "pc": "0010"
+    },
+    {
+      "expected": {},
+      "pc": "0011"
+    },
+    {
+      "expected": {
+        "pc": "0014",
+        "ram:0Dh": "00h"
+      },
+      "pc": "0012"
+    },
+    {
+      "expected": {
+        "ram:0Dh": "78h"
+      },
+      "pc": "0014"
+    },
+    {
+      "expected": {},
+      "pc": "0015"
+    },
+    {
+      "expected": {
+        "ram:10h": "10h"
+      },
+      "pc": "0016"
+    },
+    {
+      "expected": {
+        "ram:10h": "11h"
+      },
+      "pc": "0017"
+    },
+    {
+      "expected": {
+        "C": "1",
+        "ram:10h": "08h"
+      },
+      "pc": "0018"
+    },
+    {
+      "expected": {
+        "ram:10h": "88h"
+      },
+      "pc": "0019"
+    },
+    {
+      "expected": {
+        "C": "0"
+      },
+      "pc": "001A"
+    },
+    {
+      "expected": {
+        "C": "1",
+        "ram:10h": "10h"
+      },
+      "pc": "001B"
+    },
+    {
+      "expected": {},
+      "pc": "001C"
+    },
+    {
+      "expected": {
+        "C": "0",
+        "ram:11h": "43h"
+      },
+      "pc": "001D"
+    },
+    {
+      "expected": {
+        "ram:11h": "34h"
+      },
+      "pc": "001E"
+    },
+    {
+      "expected": {
+        "ram:11h": "4Ch"
+      },
+      "pc": "001F"
+    },
+    {
+      "expected": {
+        "pc": "0022"
+      },
+      "pc": "0020"
+    },
+    {
+      "expected": {
+        "pc": "0024"
+      },
+      "pc": "0022"
+    },
+    {
+      "expected": {},
+      "pc": "0024"
+    },
+    {
+      "expected": {
+        "pc": "0027"
+      },
+      "pc": "0025"
+    },
+    {
+      "expected": {
+        "pc": "0027"
+      },
+      "pc": "0027"
+    }
+  ],
+  "test_name": "TPicSimGen_Generated"
+}
