@@ -12,7 +12,7 @@ int main()
     Logger::logLevel = Logger::LogLevel::INFO;
 
     PIC pic;
-    pic.loadProgram("progs/TPicSim2.LST");
+    pic.loadProgram("progs/TPicSim3.LST");
 
     std::cout << "Program loaded, starting execution..." << std::endl;
 

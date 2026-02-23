@@ -19,4 +19,6 @@ class PIC{
         void run();
         void reset();
         void step();
+        void printState();
+        void printStep(Instruction& instruction);
 };
