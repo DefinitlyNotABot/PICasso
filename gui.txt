@@ -1,0 +1,30 @@
+SFR:                          IRP  RP1  RP0   TO   PD   Z    DC   C   |  RA    7   6   5   4   3   2   1   0
+ Sichtbar:    Versteckt:      [0]  [0]  [0]  [1]  [1]  [0]  [0]  [0]  |  TRIS  x   x   x  [i] [i] [i] [i] [i]
+  W-Reg:  xx   PC:    xx                                              |  PIN   -   -   -  [0] [0] [0] [0] [0]
+  FSR:    xx   Stack: xx      RBP IntE T0CS T0SE  PSA  PS2  PS1  PS0  |  
+  PCL:    xx   VT:    xx      [1]  [1]  [1]  [1]  [1]  [1]  [1]  [1]  |  RB    7   6   5   4   3   2   1   0
+  PCLATH: xx   WDT:   xx                                              |  TRIS [i] [i] [i] [i] [i] [i] [i] [i]
+  Status: xx                  GIE EEIE T0IE INTE RBIE T0IF INTF RBIF  |  PIN  [0] [0] [0] [0] [0] [0] [0] [0]
+                              [0]  [0]  [0]  [0]  [0]  [0]  [0]  [0]  |  
+   00 01 02 03 04 05 06 07  
+00 xx xx xx xx xx xx xx xx     ASM code                                                   [load file]| Sim Controls:
+08 xx xx xx xx xx xx xx xx  1 |                                                                      |
+10 xx xx xx xx xx xx xx xx  2 |                                                                      | Program Time:
+18 xx xx xx xx xx xx xx xx  3 |                                                                      | xxx µs
+20 xx xx xx xx xx xx xx xx  4 |                                                                      | 
+28 xx xx xx xx xx xx xx xx  5 |                                                                      | [ STEP  ]
+30 xx xx xx xx xx xx xx xx  6 |                                                                      | [ RUN   ]
+38 xx xx xx xx xx xx xx xx  7 |                                                                      | [ RESET ]
+40 xx xx xx xx xx xx xx xx  8 |                                                                      |
+48 xx xx xx xx xx xx xx xx  9 |                                                                      |
+                            10|                                                                      |
+80 xx xx xx xx xx xx xx xx  11|                                                                      |
+88 xx xx xx xx xx xx xx xx  12|                                                                      |
+90 xx xx xx xx xx xx xx xx  13|                                                                      |
+98 xx xx xx xx xx xx xx xx  14|                                                                      |
+A0 xx xx xx xx xx xx xx xx  15|                                                                      |
+A8 xx xx xx xx xx xx xx xx  16|                                                                      |
+B0 xx xx xx xx xx xx xx xx  17|                                                                      |
+B8 xx xx xx xx xx xx xx xx  18|                                                                      |
+C0 xx xx xx xx xx xx xx xx  19|                                                                      |
+C8 xx xx xx xx xx xx xx xx  20|                                                                      |
