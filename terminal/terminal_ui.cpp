@@ -48,7 +48,8 @@ enum ColorPair : short {
     CP_HIGHLIGHT = 10,
     CP_INVALID = 11,
     CP_BIT_ON = 12,
-    CP_BIT_OFF = 13
+    CP_BIT_OFF = 13,
+    CP_SELECTED_FIELD = 14
 };
 
 bool gHasColors = false;
@@ -77,6 +78,7 @@ void initializeColors()
     init_pair(CP_INVALID, COLOR_BLUE, -1);
     init_pair(CP_BIT_ON, COLOR_GREEN, -1);
     init_pair(CP_BIT_OFF, COLOR_RED, -1);
+    init_pair(CP_SELECTED_FIELD, COLOR_BLACK, COLOR_WHITE);
 
     gHasColors = true;
 }
@@ -279,7 +281,7 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
     }
 }
 
-void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
+void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes, const std::optional<uint8_t>& selectedRamAddress)
 {
     static const std::array<uint8_t, 20> rowBases = {
         0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48,
@@ -297,7 +299,10 @@ void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
             uint8_t address = static_cast<uint8_t>(base + col);
             int x = 3 + col * 3;
             std::string cell = snapshot.validMemory[address] ? toHex2(snapshot.memory[address]) : "--";
-            printWithColor(y, x, snapshot.validMemory[address] ? CP_VALUE : CP_INVALID, 0, "%s", cell.c_str());
+            const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == address;
+            const short pair = isSelected ? CP_SELECTED_FIELD : (snapshot.validMemory[address] ? CP_VALUE : CP_INVALID);
+            const int attrs = isSelected ? A_BOLD : 0;
+            printWithColor(y, x, pair, attrs, "%s", cell.c_str());
             hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, address, 0});
         }
     }
@@ -434,12 +439,17 @@ void handleToggleBit(PIC& pic, SimulationState& state, uint8_t address, uint8_t 
     setStatus(state, "Toggled bit " + std::to_string(bit) + " at 0x" + toHex2(address));
 }
 
-void processHit(PIC& pic, SimulationState& state, const HitBox& hit)
+void processHit(PIC& pic,
+                SimulationState& state,
+                const HitBox& hit,
+                std::optional<uint8_t>& selectedRamAddress,
+                std::optional<uint8_t>& pendingRamEditAddress)
 {
     switch (hit.type)
     {
     case HitType::MemoryCell:
-        handleMemoryEdit(pic, state, hit.address);
+        selectedRamAddress = hit.address;
+        pendingRamEditAddress = hit.address;
         break;
     case HitType::ToggleBit:
         handleToggleBit(pic, state, hit.address, hit.bit);
@@ -484,6 +494,8 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
     nodelay(stdscr, TRUE);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
     initializeColors();
+    std::optional<uint8_t> selectedRamAddress;
+    std::optional<uint8_t> pendingRamEditAddress;
 
     bool ncursesActive = true;
 
@@ -506,7 +518,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
         else
         {
             drawTopBits(snapshot, hitBoxes);
-            drawMemoryGrid(snapshot, hitBoxes);
+            drawMemoryGrid(snapshot, hitBoxes, selectedRamAddress);
             drawAsmPanel(pic, snapshot);
             drawControlPanel(state, hitBoxes);
 
@@ -527,6 +539,14 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
         }
 
         refresh();
+
+        if (pendingRamEditAddress.has_value())
+        {
+            handleMemoryEdit(pic, state, pendingRamEditAddress.value());
+            pendingRamEditAddress.reset();
+            selectedRamAddress.reset();
+            continue;
+        }
 
         int ch = getch();
         if (ch == ERR)
@@ -552,7 +572,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                     {
                         if (contains(hit, event.y, event.x))
                         {
-                            processHit(pic, state, hit);
+                            processHit(pic, state, hit, selectedRamAddress, pendingRamEditAddress);
                             break;
                         }
                     }
