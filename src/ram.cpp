@@ -105,3 +105,22 @@ void Ram::writeLowNibble(uint8_t address, uint8_t value)
     memory[address]->writeLowNibble(value);
 }
 
+int *Ram::readRAM()
+{
+    // 20 x 8 = 160 Register, die tatsächlich existieren
+    int *ramValues = new int[160];
+
+    // 10 x 8 = 80 Register bis erste nicht existierende Adresse
+    for (int i = 0; i < 80; i++)
+    {
+        ramValues[i] = memory[i]->readByte();
+    }
+
+    // register 0x80 bis 0xCF
+    for (int i = 0; i < 80; i++)
+    {
+        ramValues[0x80 + i] = memory[0x80 + i]->readByte();
+    }
+
+    return ramValues;
+}

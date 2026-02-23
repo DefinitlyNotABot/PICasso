@@ -24,4 +24,6 @@ public:
     void writeHighNibble(uint8_t address, uint8_t value);
     void writeLowNibble(uint8_t address, uint8_t value);
 
+    int* readRAM();
+
 };
