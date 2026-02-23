@@ -72,6 +72,7 @@ void runTest(PIC& pic, const PicTest& test) {
             else if (reg.find("ram:") == 0) {
                 // Extract address "0C" from "ram:0Ch"
                 uint8_t addr = static_cast<uint8_t>(std::stoul(reg.substr(4, 2), nullptr, 16));
+                // if(addr == 0) addr = pic.readRegister(0x04); // Handle indirect addressing for FSR
                 REQUIRE(pic.readRegister(addr) == to_int(expectedValue));
             } 
             else {
@@ -98,7 +99,7 @@ TEST_CASE("Validate all progs", "[validate]") {
 
     DYNAMIC_SECTION("File: " << testFile) {
         Logger::disableLogger("Compiler");
-        Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
+        // Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
         PIC pic;
         
         std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST";

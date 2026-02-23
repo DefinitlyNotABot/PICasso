@@ -10,7 +10,7 @@ int main()
 {
     Logger::disableLogger("Compiler");
     PIC pic;
-    pic.loadProgram("progs/TPicSim3.LST");
+    pic.loadProgram("progs/TPicSim6.LST");
 
     std::cout << "Program loaded, starting execution..." << std::endl;
 

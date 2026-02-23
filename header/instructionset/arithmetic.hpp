@@ -7,8 +7,9 @@
 class Arithmetic : public virtual Instruction 
 {
     protected:
-        uint16_t destination;
-        uint16_t file;
+        Logger logger = Logger("Arithmetic");
+        uint8_t destination;
+        uint8_t file;
         uint8_t fileValue;
         uint8_t WValue;
         void storeResult(uint16_t result);
@@ -16,6 +17,6 @@ class Arithmetic : public virtual Instruction
 
          
     public:
-        uint16_t getDestination();
-        uint16_t getFile();
+        uint8_t getDestination();
+        uint8_t getFile();
 };

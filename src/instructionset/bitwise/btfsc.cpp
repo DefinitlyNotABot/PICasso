@@ -7,7 +7,7 @@ BTFSC::BTFSC(uint16_t instruction) {
 
 uint16_t BTFSC::execute()
 {
-    if(!memoryInterface->readBit(file, bit)){
+    if(!memoryInterface->readBit(loadAddress(file), bit)){
         memoryInterface->incrementProgramCounterLow();
     }
     return 0;
