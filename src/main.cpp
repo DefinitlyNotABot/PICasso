@@ -8,9 +8,7 @@
 
 int main()
 {
-    Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
-    Logger::logLevel = Logger::LogLevel::INFO;
-
+    Logger::disableLogger("Compiler");
     PIC pic;
     pic.loadProgram("progs/TPicSim3.LST");
 
