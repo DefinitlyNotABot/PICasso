@@ -21,10 +21,9 @@ int main()
 
     std::thread simulationThread([&pic, &state]() {
         while (!state.quit.load()) {
-            const bool runMode = state.runMode.load();
             const bool stepRequested = state.stepRequested.exchange(false);
 
-            if (!runMode && !stepRequested) {
+            if (!stepRequested) {
                 std::this_thread::sleep_for(std::chrono::microseconds(200));
                 continue;
             }
@@ -43,14 +42,6 @@ int main()
 
             const uint64_t steps = state.executedSteps.fetch_add(1) + 1;
             state.programTimeUs.store(steps);
-
-            if (stepRequested) {
-                state.runMode.store(false);
-            }
-
-            if (runMode) {
-                std::this_thread::yield();
-            }
         }
     });
 

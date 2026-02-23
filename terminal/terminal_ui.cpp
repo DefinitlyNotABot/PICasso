@@ -684,6 +684,11 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             printWithColor(32, 0, statusPairFromText(status), A_BOLD, "Status: %s", status.c_str());
         }
 
+        if (state.runMode.load())
+        {
+            state.stepRequested.store(true);
+        }
+
         refresh();
 
         if (pendingRamEditAddress.has_value())
