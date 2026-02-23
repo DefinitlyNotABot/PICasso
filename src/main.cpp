@@ -21,9 +21,10 @@ int main()
 
     std::thread simulationThread([&pic, &state]() {
         while (!state.quit.load()) {
+            const bool dashMode = state.dashMode.load();
             const bool stepRequested = state.stepRequested.exchange(false);
 
-            if (!stepRequested) {
+            if (!dashMode && !stepRequested) {
                 std::this_thread::sleep_for(std::chrono::microseconds(200));
                 continue;
             }
@@ -32,6 +33,7 @@ int main()
             const bool ok = pic.tryStep(&errorMessage);
             if (!ok) {
                 state.runMode.store(false);
+                state.dashMode.store(false);
                 if (!errorMessage.empty()) {
                     std::lock_guard<std::mutex> lock(state.statusMutex);
                     state.statusMessage = "Execution halted: " + errorMessage;
@@ -42,6 +44,10 @@ int main()
 
             const uint64_t steps = state.executedSteps.fetch_add(1) + 1;
             state.programTimeUs.store(steps);
+
+            if (dashMode) {
+                std::this_thread::yield();
+            }
         }
     });
 

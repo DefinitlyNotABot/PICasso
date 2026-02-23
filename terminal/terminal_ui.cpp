@@ -32,6 +32,7 @@ enum class HitType {
     ToggleBit,
     StepButton,
     RunButton,
+    DashButton,
     ResetButton,
     LoadButton,
     QuitButton
@@ -497,13 +498,17 @@ void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxe
     printWithColor(15, x + 13, running ? CP_BUTTON_DANGER : CP_BUTTON_ACTIVE, A_BOLD, running ? "[ STOP  ]" : "[ RUN   ]");
     hitBoxes.push_back(HitBox{15, x + 13, 8, 1, HitType::RunButton, 0, 0});
 
-    printWithColor(16, x + 13, CP_STATUS_WARN, A_BOLD, "[ RESET ]");
-    hitBoxes.push_back(HitBox{16, x + 13, 8, 1, HitType::ResetButton, 0, 0});
+    const bool dashing = state.dashMode.load();
+    printWithColor(16, x + 13, dashing ? CP_BUTTON_DANGER : CP_BUTTON_ACTIVE, A_BOLD, dashing ? "[ HALT  ]" : "[ DASH  ]");
+    hitBoxes.push_back(HitBox{16, x + 13, 8, 1, HitType::DashButton, 0, 0});
 
-    printWithColor(17, x + 13, CP_BUTTON_DANGER, A_BOLD, "[ QUIT  ]");
-    hitBoxes.push_back(HitBox{17, x + 13, 8, 1, HitType::QuitButton, 0, 0});
+    printWithColor(17, x + 13, CP_STATUS_WARN, A_BOLD, "[ RESET ]");
+    hitBoxes.push_back(HitBox{17, x + 13, 8, 1, HitType::ResetButton, 0, 0});
 
-    printWithColor(18, x + 13, CP_LABEL, 0, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
+    printWithColor(18, x + 13, CP_BUTTON_DANGER, A_BOLD, "[ QUIT  ]");
+    hitBoxes.push_back(HitBox{18, x + 13, 8, 1, HitType::QuitButton, 0, 0});
+
+    printWithColor(19, x + 13, CP_LABEL, 0, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
 }
 
 void handleLoadFile(PIC& pic, SimulationState& state)
@@ -588,15 +593,29 @@ void processHit(PIC& pic,
         break;
     case HitType::StepButton:
         state.runMode.store(false);
+        state.dashMode.store(false);
         state.stepRequested.store(true);
         setStatus(state, "Single step requested");
         break;
     case HitType::RunButton:
         state.runMode.store(!state.runMode.load());
+        if (state.runMode.load())
+        {
+            state.dashMode.store(false);
+        }
         setStatus(state, state.runMode.load() ? "Running" : "Paused");
+        break;
+    case HitType::DashButton:
+        state.dashMode.store(!state.dashMode.load());
+        if (state.dashMode.load())
+        {
+            state.runMode.store(false);
+        }
+        setStatus(state, state.dashMode.load() ? "Dash mode: backend running freely" : "Dash stopped");
         break;
     case HitType::ResetButton:
         state.runMode.store(false);
+        state.dashMode.store(false);
         pic.reset();
         state.executedSteps.store(0);
         state.programTimeUs.store(0);
@@ -604,10 +623,12 @@ void processHit(PIC& pic,
         break;
     case HitType::LoadButton:
         state.runMode.store(false);
+        state.dashMode.store(false);
         handleLoadFile(pic, state);
         break;
     case HitType::QuitButton:
         state.runMode.store(false);
+        state.dashMode.store(false);
         state.quit.store(true);
         setStatus(state, "Quitting...");
         break;
@@ -679,7 +700,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                 printWithColor(30, 0, CP_LABEL, 0, "Loaded: %s", loadedPath.c_str());
             }
 
-            printWithColor(31, 0, CP_LABEL, 0, "Controls: Click [load file], [ STEP ], [ RUN/STOP ], [ RESET ], [ QUIT ]");
+            printWithColor(31, 0, CP_LABEL, 0, "Controls: Click [load file], [ STEP ], [ RUN/STOP ], [ DASH/HALT ], [ RESET ], [ QUIT ]");
             const std::string status = getStatus(state);
             printWithColor(32, 0, statusPairFromText(status), A_BOLD, "Status: %s", status.c_str());
         }

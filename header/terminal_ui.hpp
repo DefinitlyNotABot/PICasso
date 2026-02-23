@@ -10,6 +10,7 @@
 struct SimulationState {
     std::atomic<bool> quit{false};
     std::atomic<bool> runMode{false};
+    std::atomic<bool> dashMode{false};
     std::atomic<bool> stepRequested{false};
     std::atomic<uint64_t> executedSteps{0};
     std::atomic<uint64_t> programTimeUs{0};
