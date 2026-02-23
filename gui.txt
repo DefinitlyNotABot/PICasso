@@ -15,7 +15,7 @@ SFR:                          IRP  RP1  RP0   TO   PD   Z    DC   C   |  RA    7
 28 xx xx xx xx xx xx xx xx  5 |                                                                      | [ STEP  ]
 30 xx xx xx xx xx xx xx xx  6 |                                                                      | [ RUN   ]
 38 xx xx xx xx xx xx xx xx  7 |                                                                      | [ RESET ]
-40 xx xx xx xx xx xx xx xx  8 |                                                                      |
+40 xx xx xx xx xx xx xx xx  8 |                                                                      | [ QUIT  ]
 48 xx xx xx xx xx xx xx xx  9 |                                                                      |
                             10|                                                                      |
 80 xx xx xx xx xx xx xx xx  11|                                                                      |

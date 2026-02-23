@@ -20,7 +20,8 @@ enum class HitType {
     StepButton,
     RunButton,
     ResetButton,
-    LoadButton
+    LoadButton,
+    QuitButton
 };
 
 struct HitBox {
@@ -269,6 +270,9 @@ void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxe
     mvprintw(16, x + 13, "[ RESET ]");
     hitBoxes.push_back(HitBox{16, x + 13, 8, 1, HitType::ResetButton, 0, 0});
 
+    mvprintw(17, x + 13, "[ QUIT  ]");
+    hitBoxes.push_back(HitBox{17, x + 13, 8, 1, HitType::QuitButton, 0, 0});
+
     mvprintw(18, x + 13, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
 }
 
@@ -364,6 +368,11 @@ void processHit(PIC& pic, SimulationState& state, const HitBox& hit)
         state.runMode.store(false);
         handleLoadFile(pic, state);
         break;
+    case HitType::QuitButton:
+        state.runMode.store(false);
+        state.quit.store(true);
+        setStatus(state, "Quitting...");
+        break;
     }
 }
 
@@ -415,7 +424,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                 mvprintw(30, 0, "Loaded: %s", loadedPath.c_str());
             }
 
-            mvprintw(31, 0, "Keys: q=quit r=run/stop s=step x=reset l=load file");
+            mvprintw(31, 0, "Controls: Click [load file], [ STEP ], [ RUN/STOP ], [ RESET ], [ QUIT ]");
             mvprintw(32, 0, "Status: %s", getStatus(state).c_str());
         }
 
@@ -432,38 +441,6 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
         {
             state.quit.store(true);
             break;
-        }
-
-        if (ch == 'r' || ch == 'R')
-        {
-            state.runMode.store(!state.runMode.load());
-            setStatus(state, state.runMode.load() ? "Running" : "Paused");
-            continue;
-        }
-
-        if (ch == 's' || ch == 'S')
-        {
-            state.runMode.store(false);
-            state.stepRequested.store(true);
-            setStatus(state, "Single step requested");
-            continue;
-        }
-
-        if (ch == 'x' || ch == 'X')
-        {
-            state.runMode.store(false);
-            pic.reset();
-            state.executedSteps.store(0);
-            state.programTimeUs.store(0);
-            setStatus(state, "PIC reset");
-            continue;
-        }
-
-        if (ch == 'l' || ch == 'L')
-        {
-            state.runMode.store(false);
-            handleLoadFile(pic, state);
-            continue;
         }
 
         if (ch == KEY_MOUSE)
