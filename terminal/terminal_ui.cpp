@@ -3,6 +3,7 @@
 #include <array>
 #include <cctype>
 #include <chrono>
+#include <cstdarg>
 #include <curses.h>
 #include <exception>
 #include <iomanip>
@@ -34,6 +35,99 @@ struct HitBox {
     uint8_t bit;
 };
 
+enum ColorPair : short {
+    CP_HEADER = 1,
+    CP_LABEL = 2,
+    CP_VALUE = 3,
+    CP_BUTTON = 4,
+    CP_BUTTON_ACTIVE = 5,
+    CP_BUTTON_DANGER = 6,
+    CP_STATUS_OK = 7,
+    CP_STATUS_WARN = 8,
+    CP_STATUS_ERR = 9,
+    CP_HIGHLIGHT = 10,
+    CP_INVALID = 11,
+    CP_BIT_ON = 12,
+    CP_BIT_OFF = 13
+};
+
+bool gHasColors = false;
+
+void initializeColors()
+{
+    if (!has_colors())
+    {
+        gHasColors = false;
+        return;
+    }
+
+    start_color();
+    use_default_colors();
+
+    init_pair(CP_HEADER, COLOR_CYAN, -1);
+    init_pair(CP_LABEL, COLOR_YELLOW, -1);
+    init_pair(CP_VALUE, COLOR_WHITE, -1);
+    init_pair(CP_BUTTON, COLOR_CYAN, -1);
+    init_pair(CP_BUTTON_ACTIVE, COLOR_GREEN, -1);
+    init_pair(CP_BUTTON_DANGER, COLOR_RED, -1);
+    init_pair(CP_STATUS_OK, COLOR_GREEN, -1);
+    init_pair(CP_STATUS_WARN, COLOR_YELLOW, -1);
+    init_pair(CP_STATUS_ERR, COLOR_RED, -1);
+    init_pair(CP_HIGHLIGHT, COLOR_MAGENTA, -1);
+    init_pair(CP_INVALID, COLOR_BLUE, -1);
+    init_pair(CP_BIT_ON, COLOR_GREEN, -1);
+    init_pair(CP_BIT_OFF, COLOR_RED, -1);
+
+    gHasColors = true;
+}
+
+void printWithColor(int y, int x, short pair, int attrs, const char* format, ...)
+{
+    int flags = attrs;
+    if (gHasColors)
+    {
+        flags |= COLOR_PAIR(pair);
+    }
+
+    if (flags != 0)
+    {
+        attron(flags);
+    }
+
+    move(y, x);
+    va_list args;
+    va_start(args, format);
+    vw_printw(stdscr, format, args);
+    va_end(args);
+
+    if (flags != 0)
+    {
+        attroff(flags);
+    }
+}
+
+short statusPairFromText(const std::string& status)
+{
+    std::string lowered = status;
+    for (char& c : lowered)
+    {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+
+    if (lowered.find("error") != std::string::npos || lowered.find("failed") != std::string::npos ||
+        lowered.find("halt") != std::string::npos)
+    {
+        return CP_STATUS_ERR;
+    }
+
+    if (lowered.find("cancel") != std::string::npos || lowered.find("invalid") != std::string::npos)
+    {
+        return CP_STATUS_WARN;
+    }
+
+    return CP_STATUS_OK;
+}
+
 std::string toHex2(uint8_t value)
 {
     std::ostringstream oss;
@@ -60,7 +154,7 @@ std::string getStatus(SimulationState& state)
 
 void addBitWidget(std::vector<HitBox>& hitBoxes, int y, int x, bool value, uint8_t address, uint8_t bit)
 {
-    mvprintw(y, x, "[%d]", value ? 1 : 0);
+    printWithColor(y, x, value ? CP_BIT_ON : CP_BIT_OFF, A_BOLD, "[%d]", value ? 1 : 0);
     hitBoxes.push_back(HitBox{y, x, 3, 1, HitType::ToggleBit, address, bit});
 }
 
@@ -118,8 +212,8 @@ std::optional<std::string> promptInput(const std::string& prompt)
 
 void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
 {
-    mvprintw(0, 0, "SFR:                          IRP  RP1  RP0   TO   PD   Z    DC   C");
-    mvprintw(1, 0, "                              ");
+    printWithColor(0, 0, CP_HEADER, A_BOLD, "SFR:                          IRP  RP1  RP0   TO   PD   Z    DC   C");
+    printWithColor(1, 0, CP_LABEL, 0, "                              ");
 
     for (int bit = 7; bit >= 0; --bit)
     {
@@ -128,13 +222,13 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 1, x, value, 0x03, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(2, 0, "  W-Reg: %s   PC: %s", toHex2(snapshot.w).c_str(), toHex2(snapshot.programCounter).c_str());
-    mvprintw(3, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0x04] ? toHex2(snapshot.memory[0x04]).c_str() : "--");
-    mvprintw(4, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0x02] ? toHex2(snapshot.memory[0x02]).c_str() : "--");
-    mvprintw(5, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0x0A] ? toHex2(snapshot.memory[0x0A]).c_str() : "--");
-    mvprintw(6, 0, "  Status:%s", snapshot.validMemory[0x03] ? toHex2(snapshot.memory[0x03]).c_str() : "--");
+    printWithColor(2, 0, CP_VALUE, A_BOLD, "  W-Reg: %s   PC: %s", toHex2(snapshot.w).c_str(), toHex2(snapshot.programCounter).c_str());
+    printWithColor(3, 0, CP_VALUE, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0x04] ? toHex2(snapshot.memory[0x04]).c_str() : "--");
+    printWithColor(4, 0, CP_VALUE, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0x02] ? toHex2(snapshot.memory[0x02]).c_str() : "--");
+    printWithColor(5, 0, CP_VALUE, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0x0A] ? toHex2(snapshot.memory[0x0A]).c_str() : "--");
+    printWithColor(6, 0, CP_VALUE, 0, "  Status:%s", snapshot.validMemory[0x03] ? toHex2(snapshot.memory[0x03]).c_str() : "--");
 
-    mvprintw(3, 30, "RBP IntE T0CS T0SE  PSA  PS2  PS1  PS0");
+    printWithColor(3, 30, CP_LABEL, 0, "RBP IntE T0CS T0SE  PSA  PS2  PS1  PS0");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 30 + (7 - bit) * 5;
@@ -142,7 +236,7 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 4, x, value, 0x81, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(6, 30, "GIE EEIE T0IE INTE RBIE T0IF INTF RBIF");
+    printWithColor(6, 30, CP_LABEL, 0, "GIE EEIE T0IE INTE RBIE T0IF INTF RBIF");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 30 + (7 - bit) * 5;
@@ -150,8 +244,8 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 7, x, value, 0x0B, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(0, 75, "|  RA    7   6   5   4   3   2   1   0");
-    mvprintw(1, 75, "|  TRIS");
+    printWithColor(0, 75, CP_HEADER, A_BOLD, "|  RA    7   6   5   4   3   2   1   0");
+    printWithColor(1, 75, CP_LABEL, 0, "|  TRIS");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
@@ -159,7 +253,7 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 1, x, value, 0x85, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(2, 75, "|  PIN ");
+    printWithColor(2, 75, CP_LABEL, 0, "|  PIN ");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
@@ -167,8 +261,8 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 2, x, value, 0x05, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(4, 75, "|  RB    7   6   5   4   3   2   1   0");
-    mvprintw(5, 75, "|  TRIS");
+    printWithColor(4, 75, CP_HEADER, A_BOLD, "|  RB    7   6   5   4   3   2   1   0");
+    printWithColor(5, 75, CP_LABEL, 0, "|  TRIS");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
@@ -176,7 +270,7 @@ void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         addBitWidget(hitBoxes, 5, x, value, 0x86, static_cast<uint8_t>(bit));
     }
 
-    mvprintw(6, 75, "|  PIN ");
+    printWithColor(6, 75, CP_LABEL, 0, "|  PIN ");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
@@ -191,19 +285,19 @@ void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes)
         0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48,
         0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0, 0xC8};
 
-    mvprintw(9, 3, "00 01 02 03 04 05 06 07");
+    printWithColor(9, 3, CP_HEADER, A_BOLD, "00 01 02 03 04 05 06 07");
     for (int row = 0; row < static_cast<int>(rowBases.size()); ++row)
     {
         int y = 10 + row;
         uint8_t base = rowBases[row];
-        mvprintw(y, 0, "%s", toHex2(base).c_str());
+        printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", toHex2(base).c_str());
 
         for (int col = 0; col < 8; ++col)
         {
             uint8_t address = static_cast<uint8_t>(base + col);
             int x = 3 + col * 3;
             std::string cell = snapshot.validMemory[address] ? toHex2(snapshot.memory[address]) : "--";
-            mvprintw(y, x, "%s", cell.c_str());
+            printWithColor(y, x, snapshot.validMemory[address] ? CP_VALUE : CP_INVALID, 0, "%s", cell.c_str());
             hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, address, 0});
         }
     }
@@ -214,7 +308,7 @@ void drawAsmPanel(PIC& pic, const PICSnapshot& snapshot)
     int left = 32;
     int top = 9;
 
-    mvprintw(top, left, "ASM code");
+    printWithColor(top, left, CP_HEADER, A_BOLD, "ASM code");
 
     uint16_t programLength = snapshot.programLength;
     uint16_t pc = snapshot.programCounter;
@@ -233,7 +327,7 @@ void drawAsmPanel(PIC& pic, const PICSnapshot& snapshot)
 
         if (lineIndex >= programLength)
         {
-            mvprintw(y, left, "%-3d|", row + 1);
+            printWithColor(y, left, CP_LABEL, 0, "%-3d|", row + 1);
             continue;
         }
 
@@ -246,34 +340,36 @@ void drawAsmPanel(PIC& pic, const PICSnapshot& snapshot)
         }
 
         const char* marker = (lineIndex == pc) ? ">" : " ";
-        mvprintw(y, left, "%2d%s| %-12s", row + 1, marker, instructionName.c_str());
+        const short linePair = (lineIndex == pc) ? CP_HIGHLIGHT : CP_VALUE;
+        const int lineAttr = (lineIndex == pc) ? A_BOLD : 0;
+        printWithColor(y, left, linePair, lineAttr, "%2d%s| %-12s", row + 1, marker, instructionName.c_str());
     }
 }
 
 void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxes)
 {
     int x = 92;
-    mvprintw(9, x, "[load file]");
+    printWithColor(9, x, CP_BUTTON, A_BOLD, "[load file]");
     hitBoxes.push_back(HitBox{9, x, 11, 1, HitType::LoadButton, 0, 0});
 
-    mvprintw(9, x + 13, "| Sim Controls:");
-    mvprintw(11, x + 13, "Program Time:");
-    mvprintw(12, x + 13, "%llu us", static_cast<unsigned long long>(state.programTimeUs.load()));
+    printWithColor(9, x + 13, CP_HEADER, A_BOLD, "| Sim Controls:");
+    printWithColor(11, x + 13, CP_LABEL, 0, "Program Time:");
+    printWithColor(12, x + 13, CP_VALUE, A_BOLD, "%llu us", static_cast<unsigned long long>(state.programTimeUs.load()));
 
-    mvprintw(14, x + 13, "[ STEP  ]");
+    printWithColor(14, x + 13, CP_BUTTON, A_BOLD, "[ STEP  ]");
     hitBoxes.push_back(HitBox{14, x + 13, 8, 1, HitType::StepButton, 0, 0});
 
     const bool running = state.runMode.load();
-    mvprintw(15, x + 13, running ? "[ STOP  ]" : "[ RUN   ]");
+    printWithColor(15, x + 13, running ? CP_BUTTON_DANGER : CP_BUTTON_ACTIVE, A_BOLD, running ? "[ STOP  ]" : "[ RUN   ]");
     hitBoxes.push_back(HitBox{15, x + 13, 8, 1, HitType::RunButton, 0, 0});
 
-    mvprintw(16, x + 13, "[ RESET ]");
+    printWithColor(16, x + 13, CP_STATUS_WARN, A_BOLD, "[ RESET ]");
     hitBoxes.push_back(HitBox{16, x + 13, 8, 1, HitType::ResetButton, 0, 0});
 
-    mvprintw(17, x + 13, "[ QUIT  ]");
+    printWithColor(17, x + 13, CP_BUTTON_DANGER, A_BOLD, "[ QUIT  ]");
     hitBoxes.push_back(HitBox{17, x + 13, 8, 1, HitType::QuitButton, 0, 0});
 
-    mvprintw(18, x + 13, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
+    printWithColor(18, x + 13, CP_LABEL, 0, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
 }
 
 void handleLoadFile(PIC& pic, SimulationState& state)
@@ -387,6 +483,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
     keypad(stdscr, TRUE);
     nodelay(stdscr, TRUE);
     mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+    initializeColors();
 
     bool ncursesActive = true;
 
@@ -403,8 +500,8 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 
         if (maxY < 33 || maxX < 130)
         {
-            mvprintw(0, 0, "Terminal too small. Need at least 130x33.");
-            mvprintw(1, 0, "Current: %dx%d", maxX, maxY);
+            printWithColor(0, 0, CP_STATUS_WARN, A_BOLD, "Terminal too small. Need at least 130x33.");
+            printWithColor(1, 0, CP_STATUS_WARN, 0, "Current: %dx%d", maxX, maxY);
         }
         else
         {
@@ -421,11 +518,12 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 
             if (!loadedPath.empty())
             {
-                mvprintw(30, 0, "Loaded: %s", loadedPath.c_str());
+                printWithColor(30, 0, CP_LABEL, 0, "Loaded: %s", loadedPath.c_str());
             }
 
-            mvprintw(31, 0, "Controls: Click [load file], [ STEP ], [ RUN/STOP ], [ RESET ], [ QUIT ]");
-            mvprintw(32, 0, "Status: %s", getStatus(state).c_str());
+            printWithColor(31, 0, CP_LABEL, 0, "Controls: Click [load file], [ STEP ], [ RUN/STOP ], [ RESET ], [ QUIT ]");
+            const std::string status = getStatus(state);
+            printWithColor(32, 0, statusPairFromText(status), A_BOLD, "Status: %s", status.c_str());
         }
 
         refresh();
