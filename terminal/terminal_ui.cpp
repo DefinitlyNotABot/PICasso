@@ -19,6 +19,8 @@ namespace {
 constexpr int kAsmPanelLeft = 32;
 constexpr int kAsmTextWidth = 80;
 constexpr int kAsmLinePrefixWidth = 6; // "%3d%s| "
+constexpr int kAsmPanelTop = 9;
+constexpr int kAsmVisibleRows = 20;
 constexpr int kAsmPanelRight = kAsmPanelLeft + kAsmLinePrefixWidth + kAsmTextWidth - 1;
 constexpr int kControlPanelLeft = kAsmPanelRight + 3;
 constexpr int kControlPanelContentLeft = kControlPanelLeft + 13;
@@ -215,6 +217,45 @@ bool parseLstInstructionIndex(const std::string& line, uint16_t& index)
     return true;
 }
 
+bool isInAsmPanel(int y, int x)
+{
+    const int asmContentTop = kAsmPanelTop + 1;
+    const int asmContentBottom = asmContentTop + kAsmVisibleRows - 1;
+    return y >= asmContentTop && y <= asmContentBottom && x >= kAsmPanelLeft && x <= kAsmPanelRight;
+}
+
+int clampAsmScrollStart(int scrollStart, int totalLines)
+{
+    int maxStart = totalLines - kAsmVisibleRows;
+    if (maxStart < 0)
+    {
+        maxStart = 0;
+    }
+
+    if (scrollStart < 0)
+    {
+        return 0;
+    }
+    if (scrollStart > maxStart)
+    {
+        return maxStart;
+    }
+    return scrollStart;
+}
+
+int findFirstCodeLineIndex(const std::vector<std::string>& fileLines)
+{
+    for (int i = 0; i < static_cast<int>(fileLines.size()); ++i)
+    {
+        uint16_t lstIndex = 0;
+        if (parseLstInstructionIndex(fileLines[static_cast<size_t>(i)], lstIndex))
+        {
+            return i;
+        }
+    }
+    return 0;
+}
+
 std::vector<std::string> loadFileLines(const std::string& filePath)
 {
     std::vector<std::string> lines;
@@ -365,10 +406,15 @@ void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes, 
     }
 }
 
-void drawAsmPanel(const PICSnapshot& snapshot, const std::vector<std::string>& fileLines)
+void drawAsmPanel(const PICSnapshot& snapshot,
+                  const std::vector<std::string>& fileLines,
+                  int manualScrollStart,
+                  bool manualScrollEnabled,
+                  bool preferTopOffset,
+                  int* renderedStart)
 {
     int left = kAsmPanelLeft;
-    int top = 9;
+    int top = kAsmPanelTop;
     constexpr int asmTextWidth = kAsmTextWidth;
 
     printWithColor(top, left, CP_HEADER, A_BOLD, "ASM code");
@@ -388,11 +434,25 @@ void drawAsmPanel(const PICSnapshot& snapshot, const std::vector<std::string>& f
         }
     }
 
-    int maxRows = 20;
+    int maxRows = kAsmVisibleRows;
     int start = 0;
-    if (foundCurrentLine && currentFileLine > 5)
+    if (manualScrollEnabled)
+    {
+        start = clampAsmScrollStart(manualScrollStart, static_cast<int>(fileLines.size()));
+    }
+    else if (preferTopOffset)
+    {
+        start = findFirstCodeLineIndex(fileLines);
+    }
+    else if (foundCurrentLine && currentFileLine > 5)
     {
         start = currentFileLine - 5;
+    }
+
+    start = clampAsmScrollStart(start, static_cast<int>(fileLines.size()));
+    if (renderedStart != nullptr)
+    {
+        *renderedStart = start;
     }
 
     for (int row = 0; row < maxRows; ++row)
@@ -458,6 +518,9 @@ void handleLoadFile(PIC& pic, SimulationState& state)
     try
     {
         pic.loadProgram(*text);
+        pic.reset();
+        state.executedSteps.store(0);
+        state.programTimeUs.store(0);
         {
             std::lock_guard<std::mutex> lock(state.statusMutex);
             state.loadedProgramPath = *text;
@@ -567,6 +630,9 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
     std::optional<uint8_t> pendingRamEditAddress;
     std::string shownFilePath;
     std::vector<std::string> shownFileLines;
+    int asmManualScrollStart = 0;
+    bool asmManualScrollEnabled = false;
+    int asmRenderedStart = 0;
 
     bool ncursesActive = true;
 
@@ -598,11 +664,14 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             {
                 shownFilePath = loadedPath;
                 shownFileLines = loadFileLines(shownFilePath);
+                asmManualScrollStart = 0;
+                asmManualScrollEnabled = false;
             }
 
             drawTopBits(snapshot, hitBoxes);
             drawMemoryGrid(snapshot, hitBoxes, selectedRamAddress);
-            drawAsmPanel(snapshot, shownFileLines);
+            const bool preferTopOffset = !asmManualScrollEnabled && state.executedSteps.load() == 0;
+            drawAsmPanel(snapshot, shownFileLines, asmManualScrollStart, asmManualScrollEnabled, preferTopOffset, &asmRenderedStart);
             drawControlPanel(state, hitBoxes);
 
             if (!loadedPath.empty())
@@ -643,6 +712,34 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             MEVENT event;
             if (getmouse(&event) == OK)
             {
+                if (event.bstate & BUTTON4_PRESSED)
+                {
+                    if (isInAsmPanel(event.y, event.x))
+                    {
+                        if (!asmManualScrollEnabled)
+                        {
+                            asmManualScrollStart = asmRenderedStart;
+                        }
+                        asmManualScrollEnabled = true;
+                        asmManualScrollStart = clampAsmScrollStart(asmManualScrollStart - 1, static_cast<int>(shownFileLines.size()));
+                    }
+                    continue;
+                }
+
+                if (event.bstate & BUTTON5_PRESSED)
+                {
+                    if (isInAsmPanel(event.y, event.x))
+                    {
+                        if (!asmManualScrollEnabled)
+                        {
+                            asmManualScrollStart = asmRenderedStart;
+                        }
+                        asmManualScrollEnabled = true;
+                        asmManualScrollStart = clampAsmScrollStart(asmManualScrollStart + 1, static_cast<int>(shownFileLines.size()));
+                    }
+                    continue;
+                }
+
                 if ((event.bstate & BUTTON1_CLICKED) || (event.bstate & BUTTON1_PRESSED))
                 {
                     for (const HitBox& hit : hitBoxes)
