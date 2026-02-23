@@ -7,6 +7,7 @@
 
 class PIC{
     private:
+        Logger logger;
         ALU alu;
         Program loadedProgram;
         MemoryInterface memoryInterface;
@@ -21,4 +22,12 @@ class PIC{
         void step();
         void printState();
         void printStep(Instruction& instruction);
+        uint8_t getProgramCounter();
+        uint8_t getStatusBit(char c);
+        uint8_t getWRegister(){
+            return W.readByte();
+        }
+        uint8_t readRegister(uint8_t address) {
+            return memoryInterface.readRegister(address);
+        }
 };

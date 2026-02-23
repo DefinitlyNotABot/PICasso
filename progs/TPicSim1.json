@@ -1,0 +1,33 @@
+{
+  "test_name": "PIC16F84_Literal_Operations",
+  "steps": [
+    {
+      "pc": "0000",
+      "expected": { "W": "11h" }
+    },
+    {
+      "pc": "0001",
+      "expected": { "W": "10h", "Z": 0 }
+    },
+    {
+      "pc": "0002",
+      "expected": { "W": "1Dh", "Z": 0 }
+    },
+    {
+      "pc": "0003",
+      "expected": { "W": "20h", "C": 1, "DC": 1, "Z": 0 }
+    },
+    {
+      "pc": "0004",
+      "expected": { "W": "00h", "C": 1, "DC": 1, "Z": 1 }
+    },
+    {
+      "pc": "0005",
+      "expected": { "W": "25h", "C": 0, "DC": 0, "Z": 0 }
+    },
+    {
+      "pc": "0006",
+      "expected": { "pc": "0006" }
+    }
+  ]
+}

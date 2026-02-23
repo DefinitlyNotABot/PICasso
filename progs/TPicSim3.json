@@ -1,0 +1,27 @@
+{
+  "test_name": "TPicSim3_File_Register_Ops",
+  "steps": [
+    { "pc": "0000", "expected": { "W": "11h" } },
+    { "pc": "0001", "expected": { "ram:0Ch": "11h" } },
+    { "pc": "0002", "expected": { "W": "14h" } },
+    { "pc": "0003", "expected": { "W": "25h", "DC": "0", "C": "0", "Z": "0" } },
+    { "pc": "0004", "expected": { "W": "25h", "ram:0Ch": "36h", "DC": "0", "C": "0", "Z": "0" } },
+    { "pc": "0005", "expected": { "W": "24h", "ram:0Ch": "36h", "DC": "0", "C": "0", "Z": "0" } },
+    { "pc": "0006", "expected": { "W": "24h", "ram:0Ch": "36h", "ram:0Dh": "24h" } },
+    { "pc": "0007", "expected": { "ram:0Ch": "00h", "DC": "0", "C": "0", "Z": "1" } },
+    { "pc": "0008", "expected": { "W": "DBh", "ram:0Dh": "24h", "Z": "0" } },
+    { "pc": "0009", "expected": { "W": "FFh", "ram:0Ch": "00h", "Z": "0" } },
+    { "pc": "000A", "expected": { "ram:0Dh": "25h", "Z": "0" } },
+    { "pc": "000B", "expected": { "ram:0Ch": "00h", "Z": "1" } },
+    { "pc": "000C", "expected": { "ram:0Ch": "FFh", "Z": "0" } },
+    { "pc": "000D", "expected": { "W": "26h", "ram:0Dh": "25h", "Z": "0" } },
+    { "pc": "000E", "expected": { "ram:0Dh": "52h", "Z": "0" } },
+    { "pc": "000F", "expected": { "ram:0Ch": "D9h", "Z": "0" } },
+    { "pc": "0010", "expected": { "W": "00h", "Z": "1" } },
+    { "pc": "0011", "expected": { "W": "D9h", "DC": "1", "C": "1", "Z": "0" } },
+    { "pc": "0012", "expected": { "W": "79h", "DC": "0", "C": "0", "Z": "0" } },
+    { "pc": "0013", "expected": { "ram:0Dh": "D9h", "DC": "0", "C": "0", "Z": "0" } },
+    { "pc": "0014", "expected": { "ram:0Dh": "60h", "DC": "1", "C": "1", "Z": "0" } },
+    { "pc": "0015", "expected": { "pc": "0015" } }
+  ]
+}
