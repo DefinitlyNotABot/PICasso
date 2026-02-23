@@ -81,27 +81,30 @@ void runTest(PIC& pic, const PicTest& test) {
     }
 }
 
-TEST_CASE("Test all progs", "[validate]") {
-    // find all json files in the progs directory
-    std::vector<std::string> testFiles;
-    for (const auto& entry : std::filesystem::directory_iterator("progs")) {
-        if (entry.path().extension() == ".json") {
-            testFiles.push_back(entry.path().string());
+TEST_CASE("Validate all progs", "[validate]") {
+    // Collect files once
+    static std::vector<std::string> files = []() {
+        std::vector<std::string> f;
+        for (const auto& entry : std::filesystem::directory_iterator("progs")) {
+            if (entry.path().extension() == ".json") {
+                f.push_back(entry.path().string());
+            }
         }
-    }
-    // Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
-    Logger::disableLogger("Compiler");
-    for (const auto& testFile : testFiles) {
+        return f;
+    }();
+
+    // Use from_range to turn the vector into separate test iterations
+    auto const& testFile = GENERATE(from_range(files));
+
+    DYNAMIC_SECTION("File: " << testFile) {
+        Logger::disableLogger("Compiler");
+        Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
         PIC pic;
-        std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST"; // replace .json with .LST
-        std::cout << "Running test: " << testFile << " with program: " << lstFile << std::endl;
+        
+        std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST";
         pic.loadProgram(lstFile);
 
-        std::ifstream jsonFile(testFile);
-        REQUIRE(jsonFile.is_open());
-        PicTest test = loadTest(testFile);
-
-        runTest(pic, test);
+        runTest(pic, loadTest(testFile));
     }
 }
 
