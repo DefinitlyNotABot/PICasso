@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pic.hpp"
+#include "tui_initializer.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -39,4 +40,5 @@ private:
 
     std::unique_ptr<Renderer> renderer;
     std::unique_ptr<Controller> controller;
+    std::unique_ptr<TUIInitializer> tuiInitializer;
 };

@@ -1,0 +1,40 @@
+#pragma once
+#include <cstdint>
+
+enum class HitType {
+    MemoryCell,
+    ToggleBit,
+    StepButton,
+    RunButton,
+    DashButton,
+    ResetButton,
+    LoadButton,
+    QuitButton
+};
+
+struct HitBox {
+    int y;
+    int x;
+    int width;
+    int height;
+    HitType type;
+    uint8_t address;
+    uint8_t bit;
+};
+
+enum ColorPair : short {
+    CP_HEADER = 1,
+    CP_LABEL = 2,
+    CP_VALUE = 3,
+    CP_BUTTON = 4,
+    CP_BUTTON_ACTIVE = 5,
+    CP_BUTTON_DANGER = 6,
+    CP_STATUS_OK = 7,
+    CP_STATUS_WARN = 8,
+    CP_STATUS_ERR = 9,
+    CP_HIGHLIGHT = 10,
+    CP_INVALID = 11,
+    CP_BIT_ON = 12,
+    CP_BIT_OFF = 13,
+    CP_SELECTED_FIELD = 14
+};

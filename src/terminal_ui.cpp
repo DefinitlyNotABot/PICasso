@@ -1,4 +1,5 @@
 #include "terminal_ui.hpp"
+#include "tui_types.hpp"
 
 #include <array>
 #include <cctype>
@@ -27,79 +28,11 @@ constexpr int kControlPanelContentLeft = kControlPanelLeft + 13;
 constexpr int kRequiredTerminalWidth = kControlPanelContentLeft + 22;
 constexpr int kRequiredTerminalHeight = 33;
 
-enum class HitType {
-    MemoryCell,
-    ToggleBit,
-    StepButton,
-    RunButton,
-    DashButton,
-    ResetButton,
-    LoadButton,
-    QuitButton
-};
-
-struct HitBox {
-    int y;
-    int x;
-    int width;
-    int height;
-    HitType type;
-    uint8_t address;
-    uint8_t bit;
-};
-
-enum ColorPair : short {
-    CP_HEADER = 1,
-    CP_LABEL = 2,
-    CP_VALUE = 3,
-    CP_BUTTON = 4,
-    CP_BUTTON_ACTIVE = 5,
-    CP_BUTTON_DANGER = 6,
-    CP_STATUS_OK = 7,
-    CP_STATUS_WARN = 8,
-    CP_STATUS_ERR = 9,
-    CP_HIGHLIGHT = 10,
-    CP_INVALID = 11,
-    CP_BIT_ON = 12,
-    CP_BIT_OFF = 13,
-    CP_SELECTED_FIELD = 14
-};
-
-bool gHasColors = false;
-
-void initializeColors()
-{
-    if (!has_colors())
-    {
-        gHasColors = false;
-        return;
-    }
-
-    start_color();
-    use_default_colors();
-
-    init_pair(CP_HEADER, COLOR_CYAN, -1);
-    init_pair(CP_LABEL, COLOR_YELLOW, -1);
-    init_pair(CP_VALUE, COLOR_WHITE, -1);
-    init_pair(CP_BUTTON, COLOR_CYAN, -1);
-    init_pair(CP_BUTTON_ACTIVE, COLOR_GREEN, -1);
-    init_pair(CP_BUTTON_DANGER, COLOR_RED, -1);
-    init_pair(CP_STATUS_OK, COLOR_GREEN, -1);
-    init_pair(CP_STATUS_WARN, COLOR_YELLOW, -1);
-    init_pair(CP_STATUS_ERR, COLOR_RED, -1);
-    init_pair(CP_HIGHLIGHT, COLOR_MAGENTA, -1);
-    init_pair(CP_INVALID, COLOR_BLUE, -1);
-    init_pair(CP_BIT_ON, COLOR_GREEN, -1);
-    init_pair(CP_BIT_OFF, COLOR_RED, -1);
-    init_pair(CP_SELECTED_FIELD, COLOR_BLACK, COLOR_WHITE);
-
-    gHasColors = true;
-}
 
 void printWithColor(int y, int x, short pair, int attrs, const char* format, ...)
 {
     int flags = attrs;
-    if (gHasColors)
+    if (1)
     {
         flags |= COLOR_PAIR(pair);
     }
@@ -763,7 +696,8 @@ private:
 
 TerminalUI::TerminalUI()
     : renderer(std::make_unique<Renderer>()),
-      controller(std::make_unique<Controller>())
+      controller(std::make_unique<Controller>()),
+      tuiInitializer(std::make_unique<TUIInitializer>())
 {
 }
 
@@ -771,14 +705,7 @@ TerminalUI::~TerminalUI() = default;
 
 void TerminalUI::run(PIC& pic, SimulationState& state)
 {
-    initscr();
-    cbreak();
-    noecho();
-    curs_set(0);
-    keypad(stdscr, TRUE);
-    nodelay(stdscr, TRUE);
-    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
-    initializeColors();
+    tuiInitializer->initialize();
 
     std::optional<uint8_t> selectedRamAddress;
     std::optional<uint8_t> pendingRamEditAddress;
