@@ -102,3 +102,64 @@ std::string TUI_Helper::toHex2(uint8_t value)
     oss << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(value);
     return oss.str();
 }
+
+bool TUI_Helper::parseLstInstructionIndex(const std::string& line, uint16_t& index)
+{
+    if (line.size() < 4)
+    {
+        return false;
+    }
+
+    const std::string token = line.substr(0, 4);
+    for (char c : token)
+    {
+        if (!std::isxdigit(static_cast<unsigned char>(c)))
+        {
+            return false;
+        }
+    }
+
+    index = static_cast<uint16_t>(std::stoul(token, nullptr, 16));
+    return true;
+}
+
+int TUI_Helper::findFirstCodeLineIndex(const std::vector<std::string>& fileLines)
+{
+    for (int i = 0; i < static_cast<int>(fileLines.size()); ++i)
+    {
+        uint16_t lstIndex = 0;
+        if (TUI_Helper::parseLstInstructionIndex(fileLines[static_cast<size_t>(i)], lstIndex))
+        {
+            return i;
+        }
+    }
+    return 0;
+}
+
+std::string TUI_Helper::getStatus(SimulationState& state)
+{
+    std::lock_guard<std::mutex> lock(state.statusMutex);
+    return state.statusMessage;
+}
+
+short TUI_Helper::statusPairFromText(const std::string& status)
+{
+    std::string lowered = status;
+    for (char& c : lowered)
+    {
+        c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+    }
+
+    if (lowered.find("error") != std::string::npos || lowered.find("failed") != std::string::npos ||
+        lowered.find("halt") != std::string::npos)
+    {
+        return CP_STATUS_ERR;
+    }
+
+    if (lowered.find("cancel") != std::string::npos || lowered.find("invalid") != std::string::npos)
+    {
+        return CP_STATUS_WARN;
+    }
+
+    return CP_STATUS_OK;
+}

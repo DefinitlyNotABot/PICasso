@@ -4,6 +4,7 @@
 #include "tui_initializer.hpp"
 #include "tui_types.hpp"
 #include "tui_controller.hpp"
+#include "tui_renderer.hpp"
 
 #include <atomic>
 #include <cstdint>
@@ -27,7 +28,7 @@ public:
 private:
     class Renderer;
 
-    std::unique_ptr<Renderer> renderer;
+    std::unique_ptr<TUI_Renderer> renderer;
     std::unique_ptr<TUI_Controller> controller;
     std::unique_ptr<TUIInitializer> tuiInitializer;
 };

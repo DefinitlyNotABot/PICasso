@@ -12,4 +12,8 @@ class TUI_Helper {
         static void setStatus(SimulationState &state, const std::string &message);
         static bool parseHexByte(const std::string &text, uint8_t &output);
         static std::string toHex2(uint8_t value);
+        static bool parseLstInstructionIndex(const std::string &line, uint16_t &index);
+        static int findFirstCodeLineIndex(const std::vector<std::string> &fileLines);
+        static std::string getStatus(SimulationState &state);
+        static short statusPairFromText(const std::string &status);
 };
