@@ -1,5 +1,10 @@
 #pragma once
 #include <cstdint>
+#include <atomic>
+#include <string>
+#include <vector>
+#include <optional>
+#include <mutex>
 
 enum class HitType {
     MemoryCell,
@@ -37,4 +42,17 @@ enum ColorPair : short {
     CP_BIT_ON = 12,
     CP_BIT_OFF = 13,
     CP_SELECTED_FIELD = 14
+};
+
+struct SimulationState {
+    std::atomic<bool> quit{false};
+    std::atomic<bool> runMode{false};
+    std::atomic<bool> dashMode{false};
+    std::atomic<bool> stepRequested{false};
+    std::atomic<uint64_t> executedSteps{0};
+    std::atomic<uint64_t> programTimeUs{0};
+
+    std::mutex statusMutex;
+    std::string statusMessage;
+    std::string loadedProgramPath;
 };

@@ -14,19 +14,12 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <tui_layout.hpp>
+#include <tui_helper.hpp>
 
 namespace {
 
-constexpr int kAsmPanelLeft = 32;
-constexpr int kAsmTextWidth = 80;
-constexpr int kAsmLinePrefixWidth = 6; // "%3d%s| "
-constexpr int kAsmPanelTop = 9;
-constexpr int kAsmVisibleRows = 20;
-constexpr int kAsmPanelRight = kAsmPanelLeft + kAsmLinePrefixWidth + kAsmTextWidth - 1;
-constexpr int kControlPanelLeft = kAsmPanelRight + 3;
-constexpr int kControlPanelContentLeft = kControlPanelLeft + 13;
-constexpr int kRequiredTerminalWidth = kControlPanelContentLeft + 22;
-constexpr int kRequiredTerminalHeight = 33;
+
 
 
 void printWithColor(int y, int x, short pair, int attrs, const char* format, ...)
@@ -76,23 +69,9 @@ short statusPairFromText(const std::string& status)
     return CP_STATUS_OK;
 }
 
-std::string toHex2(uint8_t value)
-{
-    std::ostringstream oss;
-    oss << std::uppercase << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(value);
-    return oss.str();
-}
 
-bool contains(const HitBox& hit, int y, int x)
-{
-    return y >= hit.y && y < hit.y + hit.height && x >= hit.x && x < hit.x + hit.width;
-}
 
-void setStatus(SimulationState& state, const std::string& message)
-{
-    std::lock_guard<std::mutex> lock(state.statusMutex);
-    state.statusMessage = message;
-}
+
 
 std::string getStatus(SimulationState& state)
 {
@@ -106,30 +85,6 @@ void addBitWidget(std::vector<HitBox>& hitBoxes, int y, int x, bool value, uint8
     hitBoxes.push_back(HitBox{y, x, 3, 1, HitType::ToggleBit, address, bit});
 }
 
-bool parseHexByte(const std::string& text, uint8_t& output)
-{
-    if (text.empty() || text.size() > 2)
-    {
-        return false;
-    }
-
-    for (char c : text)
-    {
-        if (!std::isxdigit(static_cast<unsigned char>(c)))
-        {
-            return false;
-        }
-    }
-
-    unsigned long value = std::stoul(text, nullptr, 16);
-    if (value > 0xFF)
-    {
-        return false;
-    }
-
-    output = static_cast<uint8_t>(value);
-    return true;
-}
 
 bool parseLstInstructionIndex(const std::string& line, uint16_t& index)
 {
@@ -151,31 +106,8 @@ bool parseLstInstructionIndex(const std::string& line, uint16_t& index)
     return true;
 }
 
-bool isInAsmPanel(int y, int x)
-{
-    const int asmContentTop = kAsmPanelTop + 1;
-    const int asmContentBottom = asmContentTop + kAsmVisibleRows - 1;
-    return y >= asmContentTop && y <= asmContentBottom && x >= kAsmPanelLeft && x <= kAsmPanelRight;
-}
 
-int clampAsmScrollStart(int scrollStart, int totalLines)
-{
-    int maxStart = totalLines - kAsmVisibleRows;
-    if (maxStart < 0)
-    {
-        maxStart = 0;
-    }
 
-    if (scrollStart < 0)
-    {
-        return 0;
-    }
-    if (scrollStart > maxStart)
-    {
-        return maxStart;
-    }
-    return scrollStart;
-}
 
 int findFirstCodeLineIndex(const std::vector<std::string>& fileLines)
 {
@@ -217,32 +149,7 @@ std::vector<std::string> loadFileLines(const std::string& filePath)
     return lines;
 }
 
-std::optional<std::string> promptInput(const std::string& prompt)
-{
-    int maxY = 0;
-    int maxX = 0;
-    getmaxyx(stdscr, maxY, maxX);
 
-    move(maxY - 2, 0);
-    clrtoeol();
-    mvprintw(maxY - 2, 0, "%s", prompt.c_str());
-
-    char input[256] = {0};
-    nodelay(stdscr, FALSE);
-    echo();
-    curs_set(1);
-    int rc = getnstr(input, static_cast<int>(sizeof(input) - 1));
-    noecho();
-    curs_set(0);
-    nodelay(stdscr, TRUE);
-
-    if (rc == ERR)
-    {
-        return std::nullopt;
-    }
-
-    return std::string(input);
-}
 
 } // namespace
 
@@ -262,9 +169,9 @@ public:
         int maxX = 0;
         getmaxyx(stdscr, maxY, maxX);
 
-        if (maxY < kRequiredTerminalHeight || maxX < kRequiredTerminalWidth)
+        if (maxY < TUI_Layout::kRequiredTerminalHeight || maxX < TUI_Layout::kRequiredTerminalWidth)
         {
-            printWithColor(0, 0, CP_STATUS_WARN, A_BOLD, "Terminal too small. Need at least %dx%d.", kRequiredTerminalWidth, kRequiredTerminalHeight);
+            printWithColor(0, 0, CP_STATUS_WARN, A_BOLD, "Terminal too small. Need at least %dx%d.", TUI_Layout::kRequiredTerminalWidth, TUI_Layout::kRequiredTerminalHeight);
             printWithColor(1, 0, CP_STATUS_WARN, 0, "Current: %dx%d", maxX, maxY);
             return;
         }
@@ -298,11 +205,11 @@ private:
             addBitWidget(hitBoxes, 1, x, value, 0x03, static_cast<uint8_t>(bit));
         }
 
-        printWithColor(2, 0, CP_VALUE, A_BOLD, "  W-Reg: %s   PC: %s", toHex2(snapshot.w).c_str(), toHex2(snapshot.programCounter).c_str());
-        printWithColor(3, 0, CP_VALUE, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0x04] ? toHex2(snapshot.memory[0x04]).c_str() : "--");
-        printWithColor(4, 0, CP_VALUE, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0x02] ? toHex2(snapshot.memory[0x02]).c_str() : "--");
-        printWithColor(5, 0, CP_VALUE, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0x0A] ? toHex2(snapshot.memory[0x0A]).c_str() : "--");
-        printWithColor(6, 0, CP_VALUE, 0, "  Status:%s", snapshot.validMemory[0x03] ? toHex2(snapshot.memory[0x03]).c_str() : "--");
+        printWithColor(2, 0, CP_VALUE, A_BOLD, "  W-Reg: %s   PC: %s", TUI_Helper::toHex2(snapshot.w).c_str(), TUI_Helper::toHex2(snapshot.programCounter).c_str());
+        printWithColor(3, 0, CP_VALUE, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0x04] ? TUI_Helper::toHex2(snapshot.memory[0x04]).c_str() : "--");
+        printWithColor(4, 0, CP_VALUE, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0x02] ? TUI_Helper::toHex2(snapshot.memory[0x02]).c_str() : "--");
+        printWithColor(5, 0, CP_VALUE, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0x0A] ? TUI_Helper::toHex2(snapshot.memory[0x0A]).c_str() : "--");
+        printWithColor(6, 0, CP_VALUE, 0, "  Status:%s", snapshot.validMemory[0x03] ? TUI_Helper::toHex2(snapshot.memory[0x03]).c_str() : "--");
 
         printWithColor(3, 30, CP_LABEL, 0, "RBP IntE T0CS T0SE  PSA  PS2  PS1  PS0");
         for (int bit = 7; bit >= 0; --bit)
@@ -366,13 +273,13 @@ private:
         {
             int y = 10 + row;
             uint8_t base = rowBases[row];
-            printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", toHex2(base).c_str());
+            printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", TUI_Helper::toHex2(base).c_str());
 
             for (int col = 0; col < 8; ++col)
             {
                 uint8_t address = static_cast<uint8_t>(base + col);
                 int x = 3 + col * 3;
-                std::string cell = snapshot.validMemory[address] ? toHex2(snapshot.memory[address]) : "--";
+                std::string cell = snapshot.validMemory[address] ? TUI_Helper::toHex2(snapshot.memory[address]) : "--";
                 const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == address;
                 const short pair = isSelected ? CP_SELECTED_FIELD : (snapshot.validMemory[address] ? CP_VALUE : CP_INVALID);
                 const int attrs = isSelected ? A_BOLD : 0;
@@ -389,9 +296,9 @@ private:
                              bool preferTopOffset,
                              int* renderedStart)
     {
-        int left = kAsmPanelLeft;
-        int top = kAsmPanelTop;
-        constexpr int asmTextWidth = kAsmTextWidth;
+        int left = TUI_Layout::kAsmPanelLeft;
+        int top = TUI_Layout::kAsmPanelTop;
+        constexpr int asmTextWidth = TUI_Layout::kAsmTextWidth;
 
         printWithColor(top, left, CP_HEADER, A_BOLD, "ASM code");
 
@@ -410,11 +317,11 @@ private:
             }
         }
 
-        int maxRows = kAsmVisibleRows;
+        int maxRows = TUI_Layout::kAsmVisibleRows;
         int start = 0;
         if (manualScrollEnabled)
         {
-            start = clampAsmScrollStart(manualScrollStart, static_cast<int>(fileLines.size()));
+            start = TUI_Helper::clampAsmScrollStart(manualScrollStart, static_cast<int>(fileLines.size()));
         }
         else if (preferTopOffset)
         {
@@ -425,7 +332,7 @@ private:
             start = currentFileLine - 5;
         }
 
-        start = clampAsmScrollStart(start, static_cast<int>(fileLines.size()));
+        start = TUI_Helper::clampAsmScrollStart(start, static_cast<int>(fileLines.size()));
         if (renderedStart != nullptr)
         {
             *renderedStart = start;
@@ -458,7 +365,7 @@ private:
 
     static void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxes)
     {
-        int x = kControlPanelLeft;
+        int x = TUI_Layout::kControlPanelLeft;
         printWithColor(9, x, CP_BUTTON, A_BOLD, "[load file]");
         hitBoxes.push_back(HitBox{9, x, 11, 1, HitType::LoadButton, 0, 0});
 
@@ -487,211 +394,11 @@ private:
     }
 };
 
-class TerminalUI::Controller {
-public:
-    bool handlePendingMemoryEdit(PIC& pic,
-                                 SimulationState& state,
-                                 std::optional<uint8_t>& pendingRamEditAddress) const
-    {
-        if (!pendingRamEditAddress.has_value())
-        {
-            return false;
-        }
 
-        handleMemoryEdit(pic, state, pendingRamEditAddress.value());
-        pendingRamEditAddress.reset();
-        return true;
-    }
-
-    bool handleKeyPress(int ch, SimulationState& state) const
-    {
-        if (ch == 'q' || ch == 'Q')
-        {
-            state.quit.store(true);
-            return true;
-        }
-
-        return false;
-    }
-
-    void handleMouseEvent(PIC& pic,
-                          SimulationState& state,
-                          const MEVENT& event,
-                          const std::vector<HitBox>& hitBoxes,
-                          std::optional<uint8_t>& pendingRamEditAddress,
-                          int& asmManualScrollStart,
-                          bool& asmManualScrollEnabled,
-                          int asmRenderedStart,
-                          const std::vector<std::string>& shownFileLines) const
-    {
-        if (event.bstate & BUTTON4_PRESSED)
-        {
-            if (isInAsmPanel(event.y, event.x))
-            {
-                if (!asmManualScrollEnabled)
-                {
-                    asmManualScrollStart = asmRenderedStart;
-                }
-                asmManualScrollEnabled = true;
-                asmManualScrollStart = clampAsmScrollStart(asmManualScrollStart - 1, static_cast<int>(shownFileLines.size()));
-            }
-            return;
-        }
-
-        if (event.bstate & BUTTON5_PRESSED)
-        {
-            if (isInAsmPanel(event.y, event.x))
-            {
-                if (!asmManualScrollEnabled)
-                {
-                    asmManualScrollStart = asmRenderedStart;
-                }
-                asmManualScrollEnabled = true;
-                asmManualScrollStart = clampAsmScrollStart(asmManualScrollStart + 1, static_cast<int>(shownFileLines.size()));
-            }
-            return;
-        }
-
-        if ((event.bstate & BUTTON1_CLICKED) || (event.bstate & BUTTON1_PRESSED))
-        {
-            for (const HitBox& hit : hitBoxes)
-            {
-                if (contains(hit, event.y, event.x))
-                {
-                    processHit(pic, state, hit, pendingRamEditAddress);
-                    break;
-                }
-            }
-        }
-    }
-
-private:
-    static void handleLoadFile(PIC& pic, SimulationState& state)
-    {
-        auto text = promptInput("File path: ");
-        if (!text || text->empty())
-        {
-            setStatus(state, "Load canceled");
-            return;
-        }
-
-        try
-        {
-            pic.loadProgram(*text);
-            pic.reset();
-            state.executedSteps.store(0);
-            state.programTimeUs.store(0);
-            {
-                std::lock_guard<std::mutex> lock(state.statusMutex);
-                state.loadedProgramPath = *text;
-                state.statusMessage = "Loaded file " + *text;
-            }
-        }
-        catch (const std::exception& ex)
-        {
-            setStatus(state, std::string("Load failed: ") + ex.what());
-        }
-    }
-
-    static void handleMemoryEdit(PIC& pic, SimulationState& state, uint8_t address)
-    {
-        auto text = promptInput("Hex value (00-FF): ");
-        if (!text)
-        {
-            setStatus(state, "Edit canceled");
-            return;
-        }
-
-        uint8_t value = 0;
-        if (!parseHexByte(*text, value))
-        {
-            setStatus(state, "Invalid hex value");
-            return;
-        }
-
-        std::string errorMessage;
-        if (!pic.tryWriteRegister(address, value, &errorMessage))
-        {
-            setStatus(state, "Write failed: " + errorMessage);
-            return;
-        }
-
-        setStatus(state, "Wrote 0x" + toHex2(value) + " to 0x" + toHex2(address));
-    }
-
-    static void handleToggleBit(PIC& pic, SimulationState& state, uint8_t address, uint8_t bit)
-    {
-        std::string errorMessage;
-        if (!pic.tryToggleBit(address, bit, &errorMessage))
-        {
-            setStatus(state, "Toggle failed: " + errorMessage);
-            return;
-        }
-
-        setStatus(state, "Toggled bit " + std::to_string(bit) + " at 0x" + toHex2(address));
-    }
-
-    static void processHit(PIC& pic,
-                           SimulationState& state,
-                           const HitBox& hit,
-                           std::optional<uint8_t>& pendingRamEditAddress)
-    {
-        switch (hit.type)
-        {
-        case HitType::MemoryCell:
-            pendingRamEditAddress = hit.address;
-            break;
-        case HitType::ToggleBit:
-            handleToggleBit(pic, state, hit.address, hit.bit);
-            break;
-        case HitType::StepButton:
-            state.runMode.store(false);
-            state.dashMode.store(false);
-            state.stepRequested.store(true);
-            setStatus(state, "Single step requested");
-            break;
-        case HitType::RunButton:
-            state.runMode.store(!state.runMode.load());
-            if (state.runMode.load())
-            {
-                state.dashMode.store(false);
-            }
-            setStatus(state, state.runMode.load() ? "Running" : "Paused");
-            break;
-        case HitType::DashButton:
-            state.dashMode.store(!state.dashMode.load());
-            if (state.dashMode.load())
-            {
-                state.runMode.store(false);
-            }
-            setStatus(state, state.dashMode.load() ? "Dash mode: backend running freely" : "Dash stopped");
-            break;
-        case HitType::ResetButton:
-            state.runMode.store(false);
-            state.dashMode.store(false);
-            pic.reset();
-            state.executedSteps.store(0);
-            state.programTimeUs.store(0);
-            setStatus(state, "PIC reset");
-            break;
-        case HitType::LoadButton:
-            state.runMode.store(false);
-            state.dashMode.store(false);
-            handleLoadFile(pic, state);
-            break;
-        case HitType::QuitButton:
-            state.runMode.store(false);
-            state.dashMode.store(false);
-            state.quit.store(true);
-            setStatus(state, "Quitting...");
-            break;
-        }
-    }
-};
 
 TerminalUI::TerminalUI()
     : renderer(std::make_unique<Renderer>()),
-      controller(std::make_unique<Controller>()),
+      controller(std::make_unique<TUI_Controller>()),
       tuiInitializer(std::make_unique<TUIInitializer>())
 {
 }
