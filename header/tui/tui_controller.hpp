@@ -4,9 +4,15 @@
 #include "tui_types.hpp"
 #include <curses.h>
 #include "tui_helper.hpp"
+#include "tui_shareddata.hpp"
+#include <memory>
 
 class TUI_Controller {
 public:
+    TUI_Controller(std::shared_ptr<TUI_SharedData> sharedDataIn)
+        : sharedData(std::move(sharedDataIn)) // Use std::move to avoid an extra increment
+    {
+    }
     bool handlePendingMemoryEdit(PIC& pic,
                                  SimulationState& state,
                                  std::optional<uint8_t>& pendingRamEditAddress) const;
@@ -16,15 +22,10 @@ public:
     void handleMouseEvent(PIC& pic,
                           SimulationState& state,
                           const MEVENT& event,
-                          const std::vector<HitBox>& hitBoxes,
-                          std::optional<uint8_t>& pendingRamEditAddress,
-                          int& asmManualScrollStart,
-                          bool& asmManualScrollEnabled,
-                          int asmRenderedStart,
-                          const std::vector<std::string>& shownFileLines) const;
+                          const std::vector<HitBox>& hitBoxes) const;
 
 private:
-
+        std::shared_ptr<TUI_SharedData> sharedData;
         static void handleLoadFile(PIC& pic, SimulationState& state);
 
         static void handleMemoryEdit(PIC& pic, SimulationState& state, uint8_t address);

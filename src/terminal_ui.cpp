@@ -53,7 +53,7 @@ std::vector<std::string> loadFileLines(const std::string& filePath)
 
 TerminalUI::TerminalUI()
     : renderer(std::make_unique<TUI_Renderer>(sharedData)),
-      controller(std::make_unique<TUI_Controller>()),
+      controller(std::make_unique<TUI_Controller>(sharedData)),
       tuiInitializer(std::make_unique<TUIInitializer>())
 {
 }
@@ -121,12 +121,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                 controller->handleMouseEvent(pic,
                                              state,
                                              event,
-                                             hitBoxes,
-                                             sharedData->getPendingRamEditAddress(),
-                                             sharedData->getAsmManualScrollStart(),
-                                             sharedData->getAsmManualScrollEnabled(),
-                                             sharedData->getAsmRenderedStart(),
-                                             sharedData->getShownFileLines());
+                                             hitBoxes);
             }
         }
     }

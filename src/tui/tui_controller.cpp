@@ -28,23 +28,18 @@ bool TUI_Controller::handleKeyPress(int ch, SimulationState& state) const
 void TUI_Controller::handleMouseEvent(PIC& pic,
                           SimulationState& state,
                           const MEVENT& event,
-                          const std::vector<HitBox>& hitBoxes,
-                          std::optional<uint8_t>& pendingRamEditAddress,
-                          int& asmManualScrollStart,
-                          bool& asmManualScrollEnabled,
-                          int asmRenderedStart,
-                          const std::vector<std::string>& shownFileLines) const
+                          const std::vector<HitBox>& hitBoxes) const
 {
     if (event.bstate & BUTTON4_PRESSED)
     {
         if (TUI_Helper::isInAsmPanel(event.y, event.x))
         {
-            if (!asmManualScrollEnabled)
+            if (!sharedData->getAsmManualScrollEnabled())
             {
-                asmManualScrollStart = asmRenderedStart;
+                sharedData->getAsmManualScrollStart() = sharedData->getAsmRenderedStart();
             }
-            asmManualScrollEnabled = true;
-            asmManualScrollStart = TUI_Helper::clampAsmScrollStart(asmManualScrollStart - 1, static_cast<int>(shownFileLines.size()));
+            sharedData->getAsmManualScrollEnabled() = true;
+            sharedData->getAsmManualScrollStart() = TUI_Helper::clampAsmScrollStart(sharedData->getAsmManualScrollStart() - 1, static_cast<int>(sharedData->getShownFileLines().size()));
         }
         return;
     }
@@ -53,12 +48,12 @@ void TUI_Controller::handleMouseEvent(PIC& pic,
     {
         if (TUI_Helper::isInAsmPanel(event.y, event.x))
         {
-            if (!asmManualScrollEnabled)
+            if (!sharedData->getAsmManualScrollEnabled())
             {
-                asmManualScrollStart = asmRenderedStart;
+                sharedData->getAsmManualScrollStart() = sharedData->getAsmRenderedStart();
             }
-            asmManualScrollEnabled = true;
-            asmManualScrollStart = TUI_Helper::clampAsmScrollStart(asmManualScrollStart + 1, static_cast<int>(shownFileLines.size()));
+            sharedData->getAsmManualScrollEnabled() = true;
+            sharedData->getAsmManualScrollStart() = TUI_Helper::clampAsmScrollStart(sharedData->getAsmManualScrollStart() + 1, static_cast<int>(sharedData->getShownFileLines().size()));
         }
         return;
     }
@@ -69,7 +64,7 @@ void TUI_Controller::handleMouseEvent(PIC& pic,
         {
             if (TUI_Helper::contains(hit, event.y, event.x))
             {
-                processHit(pic, state, hit, pendingRamEditAddress);
+                processHit(pic, state, hit, sharedData->getPendingRamEditAddress());
                 break;
             }
         }
