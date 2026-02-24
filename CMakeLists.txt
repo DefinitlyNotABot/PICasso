@@ -67,7 +67,7 @@ add_test(NAME AllTests COMMAND $<TARGET_FILE:AllTests>)
 find_package(Curses REQUIRED)
 find_package(Threads REQUIRED)
 
-add_executable(PICasso src/main.cpp terminal/terminal_ui.cpp)
+add_executable(PICasso src/main.cpp)
 
 # Linking MyMemoryLib automatically pulls in the PUBLIC include directories.
 target_link_libraries(PICasso PRIVATE MyMemoryLib)

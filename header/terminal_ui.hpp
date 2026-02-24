@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <memory>
 #include <mutex>
 #include <string>
 
@@ -22,5 +23,20 @@ struct SimulationState {
 
 class TerminalUI {
 public:
+    TerminalUI();
+    ~TerminalUI();
+
+    TerminalUI(const TerminalUI&) = delete;
+    TerminalUI& operator=(const TerminalUI&) = delete;
+    TerminalUI(TerminalUI&&) = delete;
+    TerminalUI& operator=(TerminalUI&&) = delete;
+
     void run(PIC& pic, SimulationState& state);
+
+private:
+    class Renderer;
+    class Controller;
+
+    std::unique_ptr<Renderer> renderer;
+    std::unique_ptr<Controller> controller;
 };
