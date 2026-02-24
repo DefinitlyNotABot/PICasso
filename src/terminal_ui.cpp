@@ -1,21 +1,15 @@
 #include "terminal_ui.hpp"
 #include "tui_types.hpp"
+#include "tui_layout.hpp"
+#include "tui_helper.hpp"
 
-#include <array>
 #include <cctype>
 #include <chrono>
-#include <cstdarg>
-#include <curses.h>
-#include <exception>
 #include <fstream>
-#include <iomanip>
-#include <optional>
-#include <sstream>
 #include <string>
 #include <thread>
 #include <vector>
-#include <tui_layout.hpp>
-#include <tui_helper.hpp>
+
 
 namespace {
 
@@ -85,9 +79,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             sharedData->getAsmManualScrollEnabled() = false;
         }
 
-        renderer->draw(state,
-                       loadedPath,
-                       hitBoxes);
+        renderer->draw(state, loadedPath, hitBoxes);
 
         if (state.runMode.load())
         {
@@ -118,13 +110,9 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             MEVENT event;
             if (getmouse(&event) == OK)
             {
-                controller->handleMouseEvent(pic,
-                                             state,
-                                             event,
-                                             hitBoxes);
+                controller->handleMouseEvent(pic, state, event, hitBoxes);
             }
         }
     }
 
-    endwin();
 }

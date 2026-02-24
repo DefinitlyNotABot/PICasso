@@ -10,7 +10,7 @@
 class TUI_Controller {
 public:
     TUI_Controller(std::shared_ptr<TUI_SharedData> sharedDataIn)
-        : sharedData(std::move(sharedDataIn)) // Use std::move to avoid an extra increment
+        : sharedData(std::move(sharedDataIn))
     {
     }
     bool handlePendingMemoryEdit(PIC& pic,
