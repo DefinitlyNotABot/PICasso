@@ -4,18 +4,10 @@
 #include "alu.hpp"
 #include "program.hpp"
 #include "register.hpp"
+#include "tui_types.hpp"
 #include <array>
 #include <mutex>
 #include <string>
-
-struct PICSnapshot {
-    std::array<uint8_t, 256> memory{};
-    std::array<bool, 256> validMemory{};
-    uint8_t w = 0;
-    uint8_t programCounter = 0;
-    uint16_t programLength = 0;
-    std::string currentInstructionName;
-};
 
 class PIC{
     private:

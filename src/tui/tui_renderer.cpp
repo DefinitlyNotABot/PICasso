@@ -3,14 +3,13 @@
 #include <curses.h>
 #include <tui_layout.hpp>
 
-void TUI_Renderer::draw(const PICSnapshot& snapshot,
-              SimulationState& state,
-              const std::optional<uint8_t>& selectedRamAddress,
+TUI_Renderer::TUI_Renderer(std::shared_ptr<TUI_SharedData> sharedDataIn)
+    : sharedData(std::move(sharedDataIn)) // Use std::move to avoid an extra increment
+{
+}
+
+void TUI_Renderer::draw(SimulationState& state,
               const std::string& loadedPath,
-              const std::vector<std::string>& shownFileLines,
-              int asmManualScrollStart,
-              bool asmManualScrollEnabled,
-              int* asmRenderedStart,
               std::vector<HitBox>& hitBoxes) const
 {
     int maxY = 0;
@@ -24,10 +23,10 @@ void TUI_Renderer::draw(const PICSnapshot& snapshot,
         return;
     }
 
-    drawTopBits(snapshot, hitBoxes);
-    drawMemoryGrid(snapshot, hitBoxes, selectedRamAddress);
-    const bool preferTopOffset = !asmManualScrollEnabled && state.executedSteps.load() == 0;
-    drawAsmPanel(snapshot, shownFileLines, asmManualScrollStart, asmManualScrollEnabled, preferTopOffset, asmRenderedStart);
+    drawTopBits(sharedData->getSnapshotReference(), hitBoxes);
+    drawMemoryGrid(sharedData->getSnapshotReference(), hitBoxes, sharedData->getPendingRamEditAddress());
+    const bool preferTopOffset = !sharedData->getAsmManualScrollEnabled() && state.executedSteps.load() == 0;
+    drawAsmPanel(sharedData->getSnapshotReference(), sharedData->getShownFileLines(), sharedData->getAsmManualScrollStart(), sharedData->getAsmManualScrollEnabled(), preferTopOffset, &sharedData->getAsmRenderedStart());
     drawControlPanel(state, hitBoxes);
 
     if (!loadedPath.empty())

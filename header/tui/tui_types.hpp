@@ -5,6 +5,8 @@
 #include <vector>
 #include <optional>
 #include <mutex>
+#include <array>
+
 
 enum class HitType {
     MemoryCell,
@@ -55,4 +57,13 @@ struct SimulationState {
     std::mutex statusMutex;
     std::string statusMessage;
     std::string loadedProgramPath;
+};
+
+struct PICSnapshot {
+    std::array<uint8_t, 256> memory{};
+    std::array<bool, 256> validMemory{};
+    uint8_t w = 0;
+    uint8_t programCounter = 0;
+    uint16_t programLength = 0;
+    std::string currentInstructionName;
 };

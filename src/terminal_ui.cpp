@@ -52,7 +52,7 @@ std::vector<std::string> loadFileLines(const std::string& filePath)
 } // namespace
 
 TerminalUI::TerminalUI()
-    : renderer(std::make_unique<TUI_Renderer>()),
+    : renderer(std::make_unique<TUI_Renderer>(sharedData)),
       controller(std::make_unique<TUI_Controller>()),
       tuiInitializer(std::make_unique<TUIInitializer>())
 {
@@ -62,20 +62,11 @@ TerminalUI::~TerminalUI() = default;
 
 void TerminalUI::run(PIC& pic, SimulationState& state)
 {
-    tuiInitializer->initialize();
-
-    
-    std::optional<uint8_t> pendingRamEditAddress;
-    std::string shownFilePath;
-    std::vector<std::string> shownFileLines;
-    int asmManualScrollStart = 0;
-    bool asmManualScrollEnabled = false;
-    int asmRenderedStart = 0;
-    PICSnapshot snapshot;
+    tuiInitializer->initialize();    
 
     while (!state.quit.load())
     {
-        pic.getSnapshot(snapshot);
+        pic.getSnapshot(sharedData->getSnapshotReference());
         std::vector<HitBox> hitBoxes;
 
         erase();
@@ -86,22 +77,16 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
             loadedPath = state.loadedProgramPath;
         }
 
-        if (loadedPath != shownFilePath)
+        if (loadedPath != sharedData->getShownFilePath())
         {
-            shownFilePath = loadedPath;
-            shownFileLines = loadFileLines(shownFilePath);
-            asmManualScrollStart = 0;
-            asmManualScrollEnabled = false;
+            sharedData->getShownFilePath() = loadedPath;
+            sharedData->getShownFileLines() = loadFileLines(sharedData->getShownFilePath());
+            sharedData->getAsmManualScrollStart() = 0;
+            sharedData->getAsmManualScrollEnabled() = false;
         }
 
-        renderer->draw(snapshot,
-                       state,
-                       pendingRamEditAddress,
+        renderer->draw(state,
                        loadedPath,
-                       shownFileLines,
-                       asmManualScrollStart,
-                       asmManualScrollEnabled,
-                       &asmRenderedStart,
                        hitBoxes);
 
         if (state.runMode.load())
@@ -111,7 +96,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 
         refresh();
 
-        if (controller->handlePendingMemoryEdit(pic, state, pendingRamEditAddress))
+        if (controller->handlePendingMemoryEdit(pic, state, sharedData->getPendingRamEditAddress()))
         {
             continue;
         }
@@ -137,11 +122,11 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                                              state,
                                              event,
                                              hitBoxes,
-                                             pendingRamEditAddress,
-                                             asmManualScrollStart,
-                                             asmManualScrollEnabled,
-                                             asmRenderedStart,
-                                             shownFileLines);
+                                             sharedData->getPendingRamEditAddress(),
+                                             sharedData->getAsmManualScrollStart(),
+                                             sharedData->getAsmManualScrollEnabled(),
+                                             sharedData->getAsmRenderedStart(),
+                                             sharedData->getShownFileLines());
             }
         }
     }

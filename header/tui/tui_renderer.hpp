@@ -1,21 +1,19 @@
 #pragma once
 
-#include "pic.hpp"
 #include "tui_types.hpp"
+#include "tui_shareddata.hpp"
+#include <memory>
 
 class TUI_Renderer {
 public:
-    void draw(const PICSnapshot& snapshot,
-              SimulationState& state,
-              const std::optional<uint8_t>& selectedRamAddress,
+    TUI_Renderer(std::shared_ptr<TUI_SharedData> sharedDataIn);
+    void draw(SimulationState& state,
               const std::string& loadedPath,
-              const std::vector<std::string>& shownFileLines,
-              int asmManualScrollStart,
-              bool asmManualScrollEnabled,
-              int* asmRenderedStart,
               std::vector<HitBox>& hitBoxes) const;
 
 private:
+    std::shared_ptr<TUI_SharedData> sharedData;
+
     static void drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes);
 
     static void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes, const std::optional<uint8_t>& selectedRamAddress);

@@ -11,6 +11,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include "tui_shareddata.hpp"
 
 
 class TerminalUI {
@@ -26,7 +27,7 @@ public:
     void run(PIC& pic, SimulationState& state);
 
 private:
-    class Renderer;
+    std::shared_ptr<TUI_SharedData> sharedData = std::make_shared<TUI_SharedData>();
 
     std::unique_ptr<TUI_Renderer> renderer;
     std::unique_ptr<TUI_Controller> controller;
