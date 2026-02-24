@@ -46,7 +46,7 @@ class PIC{
             return memoryInterface.readRegister(address);
         }
 
-        PICSnapshot getSnapshot();
+        void getSnapshot(PICSnapshot& snapshot);
         bool tryStep(std::string* errorMessage = nullptr);
         bool tryWriteRegister(uint8_t address, uint8_t value, std::string* errorMessage = nullptr);
         bool tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage = nullptr);

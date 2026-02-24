@@ -96,11 +96,10 @@ uint8_t PIC::getStatusBit(char c){
     }
 }
 
-PICSnapshot PIC::getSnapshot()
+void PIC::getSnapshot(PICSnapshot& snapshot)
 {
     std::lock_guard<std::mutex> lock(executionMutex);
 
-    PICSnapshot snapshot;
     snapshot.w = W.readByte();
     snapshot.programCounter = memoryInterface.getProgramCounter();
     snapshot.programLength = loadedProgram.getProgramLength();
@@ -123,8 +122,6 @@ PICSnapshot PIC::getSnapshot()
             snapshot.validMemory[address] = false;
         }
     }
-
-    return snapshot;
 }
 
 bool PIC::tryStep(std::string* errorMessage)

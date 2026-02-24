@@ -714,10 +714,11 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
     int asmManualScrollStart = 0;
     bool asmManualScrollEnabled = false;
     int asmRenderedStart = 0;
+    PICSnapshot snapshot;
 
     while (!state.quit.load())
     {
-        PICSnapshot snapshot = pic.getSnapshot();
+        pic.getSnapshot(snapshot);
         std::vector<HitBox> hitBoxes;
 
         erase();
