@@ -491,8 +491,7 @@ class TerminalUI::Controller {
 public:
     bool handlePendingMemoryEdit(PIC& pic,
                                  SimulationState& state,
-                                 std::optional<uint8_t>& pendingRamEditAddress,
-                                 std::optional<uint8_t>& selectedRamAddress) const
+                                 std::optional<uint8_t>& pendingRamEditAddress) const
     {
         if (!pendingRamEditAddress.has_value())
         {
@@ -501,7 +500,6 @@ public:
 
         handleMemoryEdit(pic, state, pendingRamEditAddress.value());
         pendingRamEditAddress.reset();
-        selectedRamAddress.reset();
         return true;
     }
 
@@ -520,7 +518,6 @@ public:
                           SimulationState& state,
                           const MEVENT& event,
                           const std::vector<HitBox>& hitBoxes,
-                          std::optional<uint8_t>& selectedRamAddress,
                           std::optional<uint8_t>& pendingRamEditAddress,
                           int& asmManualScrollStart,
                           bool& asmManualScrollEnabled,
@@ -561,7 +558,7 @@ public:
             {
                 if (contains(hit, event.y, event.x))
                 {
-                    processHit(pic, state, hit, selectedRamAddress, pendingRamEditAddress);
+                    processHit(pic, state, hit, pendingRamEditAddress);
                     break;
                 }
             }
@@ -637,13 +634,11 @@ private:
     static void processHit(PIC& pic,
                            SimulationState& state,
                            const HitBox& hit,
-                           std::optional<uint8_t>& selectedRamAddress,
                            std::optional<uint8_t>& pendingRamEditAddress)
     {
         switch (hit.type)
         {
         case HitType::MemoryCell:
-            selectedRamAddress = hit.address;
             pendingRamEditAddress = hit.address;
             break;
         case HitType::ToggleBit:
@@ -707,7 +702,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 {
     tuiInitializer->initialize();
 
-    std::optional<uint8_t> selectedRamAddress;
+    
     std::optional<uint8_t> pendingRamEditAddress;
     std::string shownFilePath;
     std::vector<std::string> shownFileLines;
@@ -739,7 +734,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 
         renderer->draw(snapshot,
                        state,
-                       selectedRamAddress,
+                       pendingRamEditAddress,
                        loadedPath,
                        shownFileLines,
                        asmManualScrollStart,
@@ -754,7 +749,7 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
 
         refresh();
 
-        if (controller->handlePendingMemoryEdit(pic, state, pendingRamEditAddress, selectedRamAddress))
+        if (controller->handlePendingMemoryEdit(pic, state, pendingRamEditAddress))
         {
             continue;
         }
@@ -780,7 +775,6 @@ void TerminalUI::run(PIC& pic, SimulationState& state)
                                              state,
                                              event,
                                              hitBoxes,
-                                             selectedRamAddress,
                                              pendingRamEditAddress,
                                              asmManualScrollStart,
                                              asmManualScrollEnabled,
