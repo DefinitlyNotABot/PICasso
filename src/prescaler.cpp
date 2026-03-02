@@ -7,7 +7,7 @@ Prescaler::~Prescaler() {}
 Prescaler::Prescaler(std::shared_ptr<MemoryInterface> memoryInterface) : prescaleCounter(0), memoryInterface(memoryInterface) {}
 
 int Prescaler::step(Source source){
-    uint8_t optionReg = memoryInterface->readRegister(0x81);
+    uint8_t optionReg = memoryInterface->readRegister(MemoryInterface::OPTION_REG, 1);
     bool psa = (optionReg >> 3) & 0x01; // Prescaler Assignment bit
     uint8_t prescalerRate = optionReg & 0x07; // Prescaler Rate Select bits
 

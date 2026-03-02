@@ -28,6 +28,7 @@ class MemoryInterface
         enum RegisterAddresses {
             INDF = 0x00, // Indirect Register
             TMR0 = 0x01, // Timer0 Register
+            OPTION_REG = 0x01, // Option Register
             PCL = 0x02,  // Program Counter Low Byte
             STATUS = 0x03, // Status Register
             FSR = 0x04,  // File Select Register
@@ -38,7 +39,9 @@ class MemoryInterface
         };
 
         uint8_t readRegister(uint8_t address);
+        uint8_t readRegister(uint8_t address, bool bank);
         void writeRegister(uint8_t address, uint8_t value);
+        void writeRegister(uint8_t address, uint8_t value, bool bank);
         void writeBit(uint8_t address, uint8_t bit, bool value);
         bool readBit(uint8_t address, uint8_t bit);
         void writeHighNibble(uint8_t address, uint8_t value);
