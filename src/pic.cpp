@@ -162,6 +162,24 @@ bool PIC::tryWriteRegister(uint8_t address, uint8_t value, std::string* errorMes
     }
 }
 
+bool PIC::tryWriteRegister(uint8_t address, uint8_t value, bool bank, std::string* errorMessage)
+{
+    std::lock_guard<std::mutex> lock(executionMutex);
+    try
+    {
+        memoryInterface->writeRegister(address, value, bank);
+        return true;
+    }
+    catch (const std::exception& ex)
+    {
+        if (errorMessage)
+        {
+            *errorMessage = ex.what();
+        }
+        return false;
+    }
+}
+
 bool PIC::tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage)
 {
     std::lock_guard<std::mutex> lock(executionMutex);
@@ -169,6 +187,27 @@ bool PIC::tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage)
     {
         bool currentValue = memoryInterface->readBit(address, bit);
         memoryInterface->writeBit(address, bit, !currentValue);
+        return true;
+    }
+    catch (const std::exception& ex)
+    {
+        if (errorMessage)
+        {
+            *errorMessage = ex.what();
+        }
+        return false;
+    }
+}
+
+bool PIC::tryToggleBit(uint8_t address, uint8_t bit, bool bank, std::string* errorMessage)
+{
+    std::lock_guard<std::mutex> lock(executionMutex);
+    try
+    {
+        uint8_t currentValue = memoryInterface->readRegister(address, bank);
+        uint8_t mask = static_cast<uint8_t>(1U << bit);
+        uint8_t updatedValue = static_cast<uint8_t>(currentValue ^ mask);
+        memoryInterface->writeRegister(address, updatedValue, bank);
         return true;
     }
     catch (const std::exception& ex)

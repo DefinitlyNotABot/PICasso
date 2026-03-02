@@ -129,13 +129,14 @@ void TUI_Renderer::drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBo
             for (int col = 0; col < 8; ++col)
             {
                 uint8_t address = static_cast<uint8_t>(base + col);
+                uint8_t encodedAddress = static_cast<uint8_t>(address | (bank == 1 ? 0x80 : 0x00));
                 int x = 3 + col * 3;
                 std::string cell = snapshot.validMemory[bank][address] ? TUI_Helper::toHex2(snapshot.memory[bank][address]) : "--";
-                const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == address;
+                const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == encodedAddress;
                 const short pair = isSelected ? CP_SELECTED_FIELD : (snapshot.validMemory[bank][address] ? CP_VALUE : CP_INVALID);
                 const int attrs = isSelected ? A_BOLD : 0;
                 printWithColor(y, x, pair, attrs, "%s", cell.c_str());
-                hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, address, 0});
+                hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, encodedAddress, 0});
             }
         }
     }

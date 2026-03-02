@@ -45,6 +45,8 @@ class PIC{
         void getSnapshot(PICSnapshot& snapshot);
         bool tryStep(std::string* errorMessage = nullptr);
         bool tryWriteRegister(uint8_t address, uint8_t value, std::string* errorMessage = nullptr);
+        bool tryWriteRegister(uint8_t address, uint8_t value, bool bank, std::string* errorMessage = nullptr);
         bool tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage = nullptr);
+        bool tryToggleBit(uint8_t address, uint8_t bit, bool bank, std::string* errorMessage = nullptr);
         bool tryGetInstructionName(uint16_t index, std::string& instructionName, std::string* errorMessage = nullptr);
 };

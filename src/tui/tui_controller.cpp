@@ -1,5 +1,20 @@
 #include "tui_controller.hpp"
 
+namespace {
+constexpr uint8_t kBankMask = 0x80;
+constexpr uint8_t kAddressMask = 0x7F;
+
+bool isBankedAddress(uint8_t encodedAddress)
+{
+    return (encodedAddress & kBankMask) != 0U;
+}
+
+uint8_t decodeAddress(uint8_t encodedAddress)
+{
+    return static_cast<uint8_t>(encodedAddress & kAddressMask);
+}
+}
+
 bool TUI_Controller::handlePendingMemoryEdit(PIC& pic,
                                               SimulationState& state,
                                               std::optional<uint8_t>& pendingRamEditAddress) const
@@ -115,7 +130,9 @@ void TUI_Controller::handleMemoryEdit(PIC& pic, SimulationState& state, uint8_t 
     }
 
     std::string errorMessage;
-    if (!pic.tryWriteRegister(address, value, &errorMessage))
+    const bool bank = isBankedAddress(address);
+    const uint8_t decodedAddress = decodeAddress(address);
+    if (!pic.tryWriteRegister(decodedAddress, value, bank, &errorMessage))
     {
         TUI_Helper::setStatus(state, "Write failed: " + errorMessage);
         return;
@@ -128,7 +145,9 @@ void TUI_Controller::handleMemoryEdit(PIC& pic, SimulationState& state, uint8_t 
 void TUI_Controller::handleToggleBit(PIC& pic, SimulationState& state, uint8_t address, uint8_t bit)
 {
     std::string errorMessage;
-    if (!pic.tryToggleBit(address, bit, &errorMessage))
+    const bool bank = isBankedAddress(address);
+    const uint8_t decodedAddress = decodeAddress(address);
+    if (!pic.tryToggleBit(decodedAddress, bit, bank, &errorMessage))
     {
         TUI_Helper::setStatus(state, "Toggle failed: " + errorMessage);
         return;
