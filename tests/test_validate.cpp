@@ -99,7 +99,7 @@ TEST_CASE("Validate all progs", "[validate]") {
 
     DYNAMIC_SECTION("File: " << testFile) {
         Logger::disableLogger("Compiler");
-        // Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
+        Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
         PIC pic;
         
         std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST";
