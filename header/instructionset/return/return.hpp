@@ -1,8 +1,9 @@
 #pragma once
 
 #include "ret.hpp"
+#include "jump.hpp"
 
-class RETURN: public Return 
+class RETURN: public Return, public Jump
 {
  public:
       RETURN(uint16_t instruction);

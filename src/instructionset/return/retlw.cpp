@@ -8,6 +8,7 @@ uint16_t RETLW::execute()
 {
     W->writeByte(literal);
     memoryInterface->setProgramCounter(memoryInterface->popFromStack());
+    timer->timeStep();
     return 0;
 }
 

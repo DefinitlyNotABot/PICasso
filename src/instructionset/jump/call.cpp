@@ -8,6 +8,7 @@ uint16_t CALL::execute()
 {
     memoryInterface->pushToStack(memoryInterface->getProgramCounter());
     memoryInterface->setProgramCounter(address);
+    timer->timeStep();
     return 0;
 }
 

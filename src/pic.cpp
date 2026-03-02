@@ -2,6 +2,7 @@
 #include <iomanip>
 #include <iostream>
 #include <stdexcept>
+#include "jump.hpp"
 
 PIC::PIC() : alu(), loadedProgram(), logger("PIC")
 {
@@ -11,6 +12,8 @@ PIC::PIC() : alu(), loadedProgram(), logger("PIC")
     timer = Timer(prescaler, memoryInterface);
     Instruction::memoryInterface = memoryInterface;
     Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
+
+    Jump::timer = std::make_shared<Timer>(timer);
 }
 
 PIC::~PIC()

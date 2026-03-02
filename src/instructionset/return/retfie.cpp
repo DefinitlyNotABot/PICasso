@@ -8,6 +8,7 @@ RETFIE::RETFIE(uint16_t instruction){
 
 uint16_t RETFIE::execute()
 {
+    timer->timeStep();
     return 0;
 }
 
