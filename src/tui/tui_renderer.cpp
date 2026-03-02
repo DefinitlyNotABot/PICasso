@@ -124,7 +124,7 @@ void TUI_Renderer::drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBo
         {
             int y = 10 + row + bank * static_cast<int>(rowBases.size() / 2);
             uint8_t base = rowBases[row];
-            printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", TUI_Helper::toHex2(base).c_str());
+            printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", TUI_Helper::toHex2(base + (bank == 1 ? 0x80 : 0x00)).c_str());
 
             for (int col = 0; col < 8; ++col)
             {
