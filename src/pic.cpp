@@ -95,17 +95,17 @@ void PIC::getSnapshot(PICSnapshot& snapshot)
         snapshot.currentInstructionName = loadedProgram.getInstructionAt(snapshot.programCounter).getName();
     }
 
-    for (int address = 0; address < 256; ++address)
+    for (int i = 0; i < 2; i++)
     {
-        try
+        for (int j = 0; j < 0x50; j++)
         {
-            snapshot.memory[address] = memoryInterface->readRegister(static_cast<uint8_t>(address));
-            snapshot.validMemory[address] = true;
-        }
-        catch (const std::exception&)
-        {
-            snapshot.memory[address] = 0;
-            snapshot.validMemory[address] = false;
+            try{
+                snapshot.memory[i][j] = memoryInterface->readRegister(static_cast<uint8_t>(j), i);
+                snapshot.validMemory[i][j] = true;
+            } catch (const std::exception&){
+                snapshot.memory[i][j] = 0;
+                snapshot.validMemory[i][j] = false;
+            }
         }
     }
 }

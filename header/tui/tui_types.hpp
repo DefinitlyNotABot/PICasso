@@ -60,8 +60,8 @@ struct SimulationState {
 };
 
 struct PICSnapshot {
-    std::array<uint8_t, 256> memory{};
-    std::array<bool, 256> validMemory{};
+    std::array<std::array<uint8_t, 0x50>, 2> memory{};
+    std::array<std::array<bool, 0x50>, 2> validMemory{};
     uint8_t w = 0;
     uint8_t programCounter = 0;
     uint16_t programLength = 0;
