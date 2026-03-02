@@ -49,7 +49,7 @@ auto to_int = [](const std::string& s, int base = 16) {
 
 void runTest(PIC& pic, const PicTest& test) {
     for (const auto& step : test.steps) {
-        pic.step(); 
+        pic.tryStep(); 
 
         for (const auto& [reg, expectedValue] : step.expected) {
             if (reg == "W") {
@@ -99,7 +99,7 @@ TEST_CASE("Validate all progs", "[validate]") {
 
     DYNAMIC_SECTION("File: " << testFile) {
         Logger::disableLogger("Compiler");
-        // Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
+        Logger::consoleOutput = Logger::ConsoleOutput::DISABLED;
         PIC pic;
         
         std::string lstFile = testFile.substr(0, testFile.size() - 5) + ".LST";

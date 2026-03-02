@@ -3,9 +3,13 @@
 #include <iostream>
 #include <stdexcept>
 
-PIC::PIC() : alu(), loadedProgram(), memoryInterface(), logger("PIC")
+PIC::PIC() : alu(), loadedProgram(), logger("PIC")
 {
-    Instruction::memoryInterface = std::shared_ptr<MemoryInterface>(&memoryInterface, [](MemoryInterface*) {});
+    memoryInterface = std::make_shared<MemoryInterface>();
+    prescaler = std::make_shared<Prescaler>(memoryInterface);
+    
+    timer = Timer(prescaler, memoryInterface);
+    Instruction::memoryInterface = memoryInterface;
     Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
 }
 
@@ -21,38 +25,17 @@ void PIC::loadProgram(const std::string& program)
 
 void PIC::reset(){
     std::lock_guard<std::mutex> lock(executionMutex);
-    memoryInterface.reset();
+    memoryInterface->reset();
     W.writeByte(0);
 }
 
-void PIC::run()
-{
-    for(int i = 0; i < 200; i++){
-        step();
-    }
-}
 
-void PIC::step(){
-    std::lock_guard<std::mutex> lock(executionMutex);
-    if (loadedProgram.getProgramLength() == 0)
-    {
-        throw std::runtime_error("No program loaded");
-    }
-
-    uint8_t programCounter = memoryInterface.getProgramCounter();
-    memoryInterface.incrementProgramCounterLow();
-
-    Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
-    alu.executeInstruction(currentInstruction);
-
-    printStep(currentInstruction);
-}
 
 void PIC::printState(){
-    std::cout << "PCL: " << static_cast<int>(memoryInterface.getProgramCounter()) << std::endl;
+    std::cout << "PCL: " << static_cast<int>(memoryInterface->getProgramCounter()) << std::endl;
     std::cout << "W: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
               << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << std::endl;
-    std::cout << "STATUS: " << static_cast<int>(memoryInterface.readRegister(MemoryInterface::STATUS)) << std::endl;
+    std::cout << "STATUS: " << static_cast<int>(memoryInterface->readRegister(MemoryInterface::STATUS)) << std::endl;
 }
 
 void PIC::printStep(Instruction& instruction){
@@ -60,25 +43,25 @@ void PIC::printStep(Instruction& instruction){
 
     // build string like this:
     /*
-        std::cout << "PCL: " << static_cast<int>(memoryInterface.getProgramCounter()) << " ";
+        std::cout << "PCL: " << static_cast<int>(memoryInterface->getProgramCounter()) << " ";
     std::cout << "Command: " << std::left << std::setw(10) << instruction.getName() << std::right << " ";
     std::cout << "W: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
               << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << " ";
-    std::cout << " C: " << memoryInterface.readStatusBit(MemoryInterface::C) << " ";
-    std::cout << "DC: " << memoryInterface.readStatusBit(MemoryInterface::DC) << " ";
-    std::cout << "Z: " << memoryInterface.readStatusBit(MemoryInterface::Z) << std::endl;
+    std::cout << " C: " << memoryInterface->readStatusBit(MemoryInterface::C) << " ";
+    std::cout << "DC: " << memoryInterface->readStatusBit(MemoryInterface::DC) << " ";
+    std::cout << "Z: " << memoryInterface->readStatusBit(MemoryInterface::Z) << std::endl;
     */
 
     // add ram:0Ch and ram:0Dh
     std::stringstream ss;
-    ss << "PCL: " << static_cast<int>(memoryInterface.getProgramCounter()) << " Command: " << std::left << std::setw(10) << instruction.getName() << std::right << " W: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
-       << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << " C: " << memoryInterface.readStatusBit(MemoryInterface::C) << " DC: " << memoryInterface.readStatusBit(MemoryInterface::DC) << " Z: " << memoryInterface.readStatusBit(MemoryInterface::Z) << " RAM:0Ch: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface.readRegister(0x0C)) << " RAM:1Fh: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface.readRegister(0x1F));
+    ss << "PCL: " << static_cast<int>(memoryInterface->getProgramCounter()) << " Command: " << std::left << std::setw(10) << instruction.getName() << std::right << " W: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0')
+       << static_cast<int>(W.readByte()) << std::dec << std::nouppercase << std::setfill(' ') << " C: " << memoryInterface->readStatusBit(MemoryInterface::C) << " DC: " << memoryInterface->readStatusBit(MemoryInterface::DC) << " Z: " << memoryInterface->readStatusBit(MemoryInterface::Z) << " RAM:0Ch: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface->readRegister(0x0C)) << " RAM:1Fh: 0x" << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << static_cast<int>(memoryInterface->readRegister(0x1F));
     logger.log(ss.str());
 }
 
 uint8_t PIC::getProgramCounter(){
     std::lock_guard<std::mutex> lock(executionMutex);
-    return memoryInterface.getProgramCounter();
+    return memoryInterface->getProgramCounter();
 }
 
 uint8_t PIC::getStatusBit(char c){
@@ -86,11 +69,11 @@ uint8_t PIC::getStatusBit(char c){
     if(c == 'W'){
         return W.readByte();
     }else if(c == 'C'){
-        return memoryInterface.readStatusBit(MemoryInterface::C);
+        return memoryInterface->readStatusBit(MemoryInterface::C);
     } else if(c == 'D'){
-        return memoryInterface.readStatusBit(MemoryInterface::DC);
+        return memoryInterface->readStatusBit(MemoryInterface::DC);
     } else if(c == 'Z'){
-        return memoryInterface.readStatusBit(MemoryInterface::Z);
+        return memoryInterface->readStatusBit(MemoryInterface::Z);
     } else {
         throw std::invalid_argument("Invalid status bit: " + std::string(1, c));
     }
@@ -101,7 +84,7 @@ void PIC::getSnapshot(PICSnapshot& snapshot)
     std::lock_guard<std::mutex> lock(executionMutex);
 
     snapshot.w = W.readByte();
-    snapshot.programCounter = memoryInterface.getProgramCounter();
+    snapshot.programCounter = memoryInterface->getProgramCounter();
     snapshot.programLength = loadedProgram.getProgramLength();
 
     if (snapshot.programLength > 0 && snapshot.programCounter < snapshot.programLength)
@@ -113,7 +96,7 @@ void PIC::getSnapshot(PICSnapshot& snapshot)
     {
         try
         {
-            snapshot.memory[address] = memoryInterface.readRegister(static_cast<uint8_t>(address));
+            snapshot.memory[address] = memoryInterface->readRegister(static_cast<uint8_t>(address));
             snapshot.validMemory[address] = true;
         }
         catch (const std::exception&)
@@ -138,12 +121,14 @@ bool PIC::tryStep(std::string* errorMessage)
 
     try
     {
-        uint8_t programCounter = memoryInterface.getProgramCounter();
-        memoryInterface.incrementProgramCounterLow();
-
+        uint8_t programCounter = memoryInterface->getProgramCounter();
+        memoryInterface->incrementProgramCounterLow();
         Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
+
         alu.executeInstruction(currentInstruction);
-        printStep(currentInstruction);
+        timer.timeStep();
+
+        // printStep(currentInstruction);
         return true;
     }
     catch (const std::exception& ex)
@@ -161,7 +146,7 @@ bool PIC::tryWriteRegister(uint8_t address, uint8_t value, std::string* errorMes
     std::lock_guard<std::mutex> lock(executionMutex);
     try
     {
-        memoryInterface.writeRegister(address, value);
+        memoryInterface->writeRegister(address, value);
         return true;
     }
     catch (const std::exception& ex)
@@ -179,8 +164,8 @@ bool PIC::tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage)
     std::lock_guard<std::mutex> lock(executionMutex);
     try
     {
-        bool currentValue = memoryInterface.readBit(address, bit);
-        memoryInterface.writeBit(address, bit, !currentValue);
+        bool currentValue = memoryInterface->readBit(address, bit);
+        memoryInterface->writeBit(address, bit, !currentValue);
         return true;
     }
     catch (const std::exception& ex)
