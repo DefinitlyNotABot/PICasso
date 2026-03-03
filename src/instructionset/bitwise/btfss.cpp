@@ -9,6 +9,7 @@ uint16_t BTFSS::execute()
 {
     if(memoryInterface->readBit(loadAddress(file), bit)){
         memoryInterface->incrementProgramCounterLow();
+        timer->timeStep();
     }
     return 0;
 }

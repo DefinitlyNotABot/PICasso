@@ -48,21 +48,21 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 30 + (7 - bit) * 5;
-        bool value = snapshot.validMemory[0x03] ? ((snapshot.memory[0x03] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[0][0x03] ? ((snapshot.memory[0][0x03] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 1, x, value, 0x03, static_cast<uint8_t>(bit));
     }
 
     printWithColor(2, 0, CP_VALUE, A_BOLD, "  W-Reg: %s   PC: %s", TUI_Helper::toHex2(snapshot.w).c_str(), TUI_Helper::toHex2(snapshot.programCounter).c_str());
-    printWithColor(3, 0, CP_VALUE, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0x04] ? TUI_Helper::toHex2(snapshot.memory[0x04]).c_str() : "--");
-    printWithColor(4, 0, CP_VALUE, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0x02] ? TUI_Helper::toHex2(snapshot.memory[0x02]).c_str() : "--");
-    printWithColor(5, 0, CP_VALUE, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0x0A] ? TUI_Helper::toHex2(snapshot.memory[0x0A]).c_str() : "--");
-    printWithColor(6, 0, CP_VALUE, 0, "  Status:%s", snapshot.validMemory[0x03] ? TUI_Helper::toHex2(snapshot.memory[0x03]).c_str() : "--");
+    printWithColor(3, 0, CP_VALUE, 0, "  FSR:   %s   Stack: --", snapshot.validMemory[0][0x04] ? TUI_Helper::toHex2(snapshot.memory[0][0x04]).c_str() : "--");
+    printWithColor(4, 0, CP_VALUE, 0, "  PCL:   %s   VT:    --", snapshot.validMemory[0][0x02] ? TUI_Helper::toHex2(snapshot.memory[0][0x02]).c_str() : "--");
+    printWithColor(5, 0, CP_VALUE, 0, "  PCLATH:%s   WDT:   --", snapshot.validMemory[0][0x0A] ? TUI_Helper::toHex2(snapshot.memory[0][0x0A]).c_str() : "--");
+    printWithColor(6, 0, CP_VALUE, 0, "  Status:%s", snapshot.validMemory[0][0x03] ? TUI_Helper::toHex2(snapshot.memory[0][0x03]).c_str() : "--");
 
     printWithColor(3, 30, CP_LABEL, 0, "RBP IntE T0CS T0SE  PSA  PS2  PS1  PS0");
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 30 + (7 - bit) * 5;
-        bool value = snapshot.validMemory[0x81] ? ((snapshot.memory[0x81] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[1][0x01] ? ((snapshot.memory[1][0x01] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 4, x, value, 0x81, static_cast<uint8_t>(bit));
     }
 
@@ -70,7 +70,7 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 30 + (7 - bit) * 5;
-        bool value = snapshot.validMemory[0x0B] ? ((snapshot.memory[0x0B] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[1][0x0B] ? ((snapshot.memory[1][0x0B] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 7, x, value, 0x0B, static_cast<uint8_t>(bit));
     }
 
@@ -79,7 +79,7 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
-        bool value = snapshot.validMemory[0x85] ? ((snapshot.memory[0x85] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[1][0x05] ? ((snapshot.memory[1][0x05] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 1, x, value, 0x85, static_cast<uint8_t>(bit));
     }
 
@@ -87,7 +87,7 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
-        bool value = snapshot.validMemory[0x05] ? ((snapshot.memory[0x05] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[0][0x05] ? ((snapshot.memory[0][0x05] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 2, x, value, 0x05, static_cast<uint8_t>(bit));
     }
 
@@ -96,7 +96,7 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
-        bool value = snapshot.validMemory[0x86] ? ((snapshot.memory[0x86] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[1][0x06] ? ((snapshot.memory[1][0x06] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 5, x, value, 0x86, static_cast<uint8_t>(bit));
     }
 
@@ -104,7 +104,7 @@ void TUI_Renderer::drawTopBits(const PICSnapshot& snapshot, std::vector<HitBox>&
     for (int bit = 7; bit >= 0; --bit)
     {
         int x = 84 + (7 - bit) * 4;
-        bool value = snapshot.validMemory[0x06] ? ((snapshot.memory[0x06] >> bit) & 1U) != 0U : false;
+        bool value = snapshot.validMemory[0][0x06] ? ((snapshot.memory[0][0x06] >> bit) & 1U) != 0U : false;
         addBitWidget(hitBoxes, 6, x, value, 0x06, static_cast<uint8_t>(bit));
     }
 }
@@ -114,25 +114,30 @@ void TUI_Renderer::drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBo
 {
     static const std::array<uint8_t, 20> rowBases = {
         0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, 0x38, 0x40, 0x48,
-        0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0, 0xC8};
+        0x80, 0x88, 0x90, 0x98, 0xA0, 0xA8, 0xB0, 0xB8, 0xC0, 0xC8
+    };
 
     printWithColor(9, 3, CP_HEADER, A_BOLD, "00 01 02 03 04 05 06 07");
-    for (int row = 0; row < static_cast<int>(rowBases.size()); ++row)
+    for(int bank = 0; bank < 2; ++bank)
     {
-        int y = 10 + row;
-        uint8_t base = rowBases[row];
-        printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", TUI_Helper::toHex2(base).c_str());
-
-        for (int col = 0; col < 8; ++col)
+        for (int row = 0; row < static_cast<int>(rowBases.size() / 2); ++row)
         {
-            uint8_t address = static_cast<uint8_t>(base + col);
-            int x = 3 + col * 3;
-            std::string cell = snapshot.validMemory[address] ? TUI_Helper::toHex2(snapshot.memory[address]) : "--";
-            const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == address;
-            const short pair = isSelected ? CP_SELECTED_FIELD : (snapshot.validMemory[address] ? CP_VALUE : CP_INVALID);
-            const int attrs = isSelected ? A_BOLD : 0;
-            printWithColor(y, x, pair, attrs, "%s", cell.c_str());
-            hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, address, 0});
+            int y = 10 + row + bank * static_cast<int>(rowBases.size() / 2);
+            uint8_t base = rowBases[row];
+            printWithColor(y, 0, CP_LABEL, A_BOLD, "%s", TUI_Helper::toHex2(base + (bank == 1 ? 0x80 : 0x00)).c_str());
+
+            for (int col = 0; col < 8; ++col)
+            {
+                uint8_t address = static_cast<uint8_t>(base + col);
+                uint8_t encodedAddress = static_cast<uint8_t>(address | (bank == 1 ? 0x80 : 0x00));
+                int x = 3 + col * 3;
+                std::string cell = snapshot.validMemory[bank][address] ? TUI_Helper::toHex2(snapshot.memory[bank][address]) : "--";
+                const bool isSelected = selectedRamAddress.has_value() && selectedRamAddress.value() == encodedAddress;
+                const short pair = isSelected ? CP_SELECTED_FIELD : (snapshot.validMemory[bank][address] ? CP_VALUE : CP_INVALID);
+                const int attrs = isSelected ? A_BOLD : 0;
+                printWithColor(y, x, pair, attrs, "%s", cell.c_str());
+                hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, encodedAddress, 0});
+            }
         }
     }
 }

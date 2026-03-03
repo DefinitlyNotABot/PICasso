@@ -75,3 +75,13 @@ uint8_t MemoryInterface::popFromStack()
 {
     return stack.pop();
 }
+
+uint8_t MemoryInterface::readRegister(uint8_t address, bool bank)
+{
+    return ram.readRegister(address, bank);
+}
+
+void MemoryInterface::writeRegister(uint8_t address, uint8_t value, bool bank)
+{
+    ram.writeRegister(address, value, bank);
+}

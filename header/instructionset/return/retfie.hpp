@@ -1,8 +1,9 @@
 #pragma once
 
 #include "ret.hpp"
+#include "jump.hpp"
 
-class RETFIE: public Return 
+class RETFIE: public Return, public Jump
 {
  public:
       RETFIE(uint16_t instruction);

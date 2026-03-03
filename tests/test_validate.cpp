@@ -49,7 +49,7 @@ auto to_int = [](const std::string& s, int base = 16) {
 
 void runTest(PIC& pic, const PicTest& test) {
     for (const auto& step : test.steps) {
-        pic.step(); 
+        pic.tryStep(); 
 
         for (const auto& [reg, expectedValue] : step.expected) {
             if (reg == "W") {

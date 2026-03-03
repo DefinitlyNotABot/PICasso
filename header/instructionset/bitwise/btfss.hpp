@@ -1,8 +1,9 @@
 #pragma once
 
 #include "bitwise.hpp"
+#include "jump.hpp"
 
-class BTFSS : public Bitwise 
+class BTFSS : public Bitwise, public Jump
 {
   public:
     BTFSS(uint16_t instruction);
