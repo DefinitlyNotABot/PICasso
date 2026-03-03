@@ -12,6 +12,8 @@ private:
 
     bool readBankSelectBit() const;
     bool isOutOfScope(uint8_t address) const;
+    void throwErrors(uint8_t address) const;
+    void throwErrors(uint8_t address, bool bank) const;
 
 public:
     Ram();
