@@ -22,4 +22,5 @@ class Prescaler
         ~Prescaler();
 
         int step(Source source);
+        void reset();
 };

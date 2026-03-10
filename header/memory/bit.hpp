@@ -3,7 +3,7 @@
 class Bit
 {
 private:
-    bool bitValue;
+    bool bitValue = 0;
 
 public:
     Bit();

@@ -50,6 +50,12 @@ void MemoryInterface::reset()
     stack.reset();
 }
 
+void MemoryInterface::powerOnReset()
+{
+    ram.powerOnReset();
+    stack.reset();
+}
+
 uint8_t MemoryInterface::getProgramCounter()
 {
     return ram.readRegister(RegisterAddresses::PCL);

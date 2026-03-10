@@ -50,6 +50,7 @@ class MemoryInterface
         bool readStatusBit(StatusBits bit);
 
         void reset();
+        void powerOnReset();
 
         uint8_t getProgramCounter();
         void setProgramCounter(uint8_t value);

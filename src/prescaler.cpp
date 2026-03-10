@@ -24,3 +24,8 @@ int Prescaler::step(Source source){
     return 0;
 }
 
+void Prescaler::reset()
+{
+    prescaleCounter = 0;
+}
+

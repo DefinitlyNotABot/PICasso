@@ -21,6 +21,7 @@ public:
     Ram(const Ram &) = delete;
     Ram &operator=(const Ram &) = delete;
     void reset();
+    void powerOnReset();
     uint8_t readRegister(uint8_t address);
     uint8_t readRegister(uint8_t address, bool bank);
     void writeRegister(uint8_t address, uint8_t value);

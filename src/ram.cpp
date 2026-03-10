@@ -46,7 +46,7 @@ Ram::Ram()
             memory[i][j] = new Register();
         }
     }
-    reset();
+    powerOnReset();
 }
 
 Ram::~Ram()
@@ -74,6 +74,28 @@ void Ram::reset()
     memory[1][0x03]->writeBit(4, true);
     memory[1][0x05]->writeByte(0x1F);
     memory[1][0x06]->writeByte(0xFF);
+}
+
+void Ram::powerOnReset()
+{
+    for(int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 0x50; j++)
+        {
+            if (i == 1 && (j == 0x02 || j == 0x03 || j == 0x04 || j == 0x0A || j == 0x0B) || j == 0x07)
+            {
+                continue;
+            }
+            memory[i][j]->writeByte(0);
+        }
+    }
+    // Only set non-zero bytes
+    memory[0][0x03]->writeByte(0x18);
+    memory[1][0x01]->writeByte(0xFF);
+    memory[1][0x03]->writeByte(0x18); //Theoretically redundant; kept for clarity
+    memory[1][0x05]->writeByte(0x1F);
+    memory[1][0x06]->writeByte(0xFF);
+
 }
 
 uint8_t Ram::readRegister(uint8_t address)
