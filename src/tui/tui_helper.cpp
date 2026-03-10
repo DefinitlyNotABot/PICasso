@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include "lst_preview.hpp"
 
 bool TUI_Helper::isInAsmPanel(int y, int x)
 {
@@ -248,16 +249,7 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
             return cachedPreviewLines;
         }
         cachedPreviewPath = pathStr;
-        cachedPreviewLines.clear();
-        std::ifstream ifs(pathStr);
-        if (ifs.is_open())
-        {
-            std::string line;
-            while (std::getline(ifs, line))
-            {
-                cachedPreviewLines.push_back(line);
-            }
-        }
+        cachedPreviewLines = LstPreview::loadFileLines(pathStr);
         return cachedPreviewLines;
     };
 
@@ -385,24 +377,7 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
             mvprintw(1, previewLeft, "%s", previewTitle.c_str());
             attroff(A_BOLD | COLOR_PAIR(CP_HEADER));
 
-            for (int i = 0; i < panelHeight && i < static_cast<int>(lines.size()); ++i)
-            {
-                std::string line = lines[static_cast<size_t>(i)];
-                if (static_cast<int>(line.size()) > previewWidth - 1)
-                {
-                    line = line.substr(0, static_cast<size_t>(previewWidth - 1));
-                }
-                attron(COLOR_PAIR(CP_LABEL));
-                mvprintw(panelTop + i, previewLeft, "%s", line.c_str());
-                attroff(COLOR_PAIR(CP_LABEL));
-            }
-
-            if (lines.empty())
-            {
-                attron(COLOR_PAIR(CP_STATUS_WARN));
-                mvprintw(panelTop, previewLeft, "(empty file)");
-                attroff(COLOR_PAIR(CP_STATUS_WARN));
-            }
+            LstPreview::drawPreview(lines, panelTop, previewLeft, panelHeight, previewWidth - 1, CP_LABEL);
         }
 
         if (!showingPreview)

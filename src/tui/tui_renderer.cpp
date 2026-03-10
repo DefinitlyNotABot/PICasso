@@ -2,6 +2,7 @@
 #include <tui_helper.hpp>
 #include <curses.h>
 #include <tui_layout.hpp>
+#include "lst_preview.hpp"
 
 TUI_Renderer::TUI_Renderer(std::shared_ptr<TUI_SharedData> sharedDataIn)
     : sharedData(std::move(sharedDataIn)) // Use std::move to avoid an extra increment
@@ -26,7 +27,14 @@ void TUI_Renderer::draw(SimulationState& state,
     drawTopBits(sharedData->getSnapshotReference(), hitBoxes);
     drawMemoryGrid(sharedData->getSnapshotReference(), hitBoxes, sharedData->getPendingRamEditAddress());
     const bool preferTopOffset = !sharedData->getAsmManualScrollEnabled() && state.executedSteps.load() == 0;
-    drawAsmPanel(sharedData->getSnapshotReference(), sharedData->getShownFileLines(), sharedData->getAsmManualScrollStart(), sharedData->getAsmManualScrollEnabled(), preferTopOffset, &sharedData->getAsmRenderedStart());
+    LstPreview::drawAsmView(sharedData->getShownFileLines(),
+                            TUI_Layout::kAsmPanelTop, TUI_Layout::kAsmPanelLeft,
+                            TUI_Layout::kAsmVisibleRows, TUI_Layout::kAsmTextWidth,
+                            sharedData->getSnapshotReference().programCounter,
+                            sharedData->getAsmManualScrollStart(),
+                            sharedData->getAsmManualScrollEnabled(),
+                            preferTopOffset,
+                            &sharedData->getAsmRenderedStart());
     drawControlPanel(state, hitBoxes);
 
     if (!loadedPath.empty())
@@ -139,80 +147,6 @@ void TUI_Renderer::drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBo
                 hitBoxes.push_back(HitBox{y, x, 2, 1, HitType::MemoryCell, encodedAddress, 0});
             }
         }
-    }
-}
-
-void TUI_Renderer::drawAsmPanel(const PICSnapshot& snapshot,
-                             const std::vector<std::string>& fileLines,
-                             int manualScrollStart,
-                             bool manualScrollEnabled,
-                             bool preferTopOffset,
-                             int* renderedStart)
-{
-    int left = TUI_Layout::kAsmPanelLeft;
-    int top = TUI_Layout::kAsmPanelTop;
-    constexpr int asmTextWidth = TUI_Layout::kAsmTextWidth;
-
-    printWithColor(top, left, CP_HEADER, A_BOLD, "ASM code");
-
-    uint16_t pc = snapshot.programCounter;
-
-    int currentFileLine = 0;
-    bool foundCurrentLine = false;
-    for (int i = 0; i < static_cast<int>(fileLines.size()); ++i)
-    {
-        uint16_t lstIndex = 0;
-        if (TUI_Helper::parseLstInstructionIndex(fileLines[static_cast<size_t>(i)], lstIndex) && lstIndex == pc)
-        {
-            currentFileLine = i;
-            foundCurrentLine = true;
-            break;
-        }
-    }
-
-    int maxRows = TUI_Layout::kAsmVisibleRows;
-    int start = 0;
-    if (manualScrollEnabled)
-    {
-        start = TUI_Helper::clampAsmScrollStart(manualScrollStart, static_cast<int>(fileLines.size()));
-    }
-    else if (preferTopOffset)
-    {
-        start = TUI_Helper::findFirstCodeLineIndex(fileLines);
-    }
-    else if (foundCurrentLine && currentFileLine > 5)
-    {
-        start = currentFileLine - 5;
-    }
-
-    start = TUI_Helper::clampAsmScrollStart(start, static_cast<int>(fileLines.size()));
-    if (renderedStart != nullptr)
-    {
-        *renderedStart = start;
-    }
-
-    for (int row = 0; row < maxRows; ++row)
-    {
-        int lineIndex = start + row;
-        int y = top + 1 + row;
-        int displayLineNumber = lineIndex + 1;
-
-        if (lineIndex >= static_cast<int>(fileLines.size()))
-        {
-            printWithColor(y, left, CP_LABEL, 0, "%3d|", displayLineNumber);
-            continue;
-        }
-
-        std::string lineText = fileLines[static_cast<size_t>(lineIndex)];
-
-        uint16_t lstIndex = 0;
-        const bool indexAvailable = TUI_Helper::parseLstInstructionIndex(lineText, lstIndex);
-        const bool isCurrentInstruction = indexAvailable && lstIndex == pc;
-
-        const char* marker = isCurrentInstruction ? ">" : " ";
-        const short linePair = isCurrentInstruction ? CP_HIGHLIGHT : CP_VALUE;
-        const int lineAttr = isCurrentInstruction ? A_BOLD : 0;
-        printWithColor(y, left, linePair, lineAttr, "%3d%s| %-*.*s", displayLineNumber, marker, asmTextWidth, asmTextWidth, lineText.c_str());
     }
 }
 

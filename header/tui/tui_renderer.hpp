@@ -18,12 +18,7 @@ private:
 
     static void drawMemoryGrid(const PICSnapshot& snapshot, std::vector<HitBox>& hitBoxes, const std::optional<uint8_t>& selectedRamAddress);
 
-    static void drawAsmPanel(const PICSnapshot& snapshot,
-                             const std::vector<std::string>& fileLines,
-                             int manualScrollStart,
-                             bool manualScrollEnabled,
-                             bool preferTopOffset,
-                             int* renderedStart);
+
 
     static void drawControlPanel(const SimulationState& state, std::vector<HitBox>& hitBoxes);
     static void addBitWidget(std::vector<HitBox> &hitBoxes, int y, int x, bool value, uint8_t address, uint8_t bit);
