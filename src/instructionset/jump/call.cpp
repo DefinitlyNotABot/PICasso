@@ -8,8 +8,7 @@ uint16_t CALL::execute()
 {
     memoryInterface->pushToStack(memoryInterface->getProgramCounter());
     memoryInterface->setProgramCounter(address);
-    timer->timeStep();
-    return 0;
+    return 2; // execution time in cycles (1 for call + 1 for the jump)
 }
 
 std::string CALL::getName()

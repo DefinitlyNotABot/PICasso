@@ -8,7 +8,7 @@ BSF::BSF(uint16_t instruction) {
 uint16_t BSF::execute()
 {
     memoryInterface->writeBit(loadAddress(file), bit, true);
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string BSF::getName()

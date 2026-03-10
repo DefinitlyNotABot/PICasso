@@ -7,8 +7,7 @@ GOTO::GOTO(uint16_t instruction) {
 uint16_t GOTO::execute()
 {
     memoryInterface->setProgramCounter(address);
-    timer->timeStep();
-    return 0;
+    return 2; // execution time in cycles (1 for goto + 1 for the jump)
 }
 
 std::string GOTO::getName()

@@ -128,8 +128,11 @@ bool PIC::tryStep(std::string* errorMessage)
         memoryInterface->incrementProgramCounterLow();
         Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
 
-        alu.executeInstruction(currentInstruction);
-        timer.timeStep();
+        uint16_t executionTime = alu.executeInstruction(currentInstruction);
+        for(int i = 0; i < executionTime; i++){
+            timer.timeStep();
+            totalSimulatedTimeUs++;
+        }
 
         // printStep(currentInstruction);
         return true;
@@ -245,4 +248,11 @@ bool PIC::tryGetInstructionName(uint16_t index, std::string& instructionName, st
         }
         return false;
     }
+}
+
+
+uint64_t PIC::getSimulatedTimeUs()
+{
+    std::lock_guard<std::mutex> lock(executionMutex);
+    return totalSimulatedTimeUs;
 }

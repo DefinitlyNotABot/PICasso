@@ -14,9 +14,10 @@ uint16_t INCFSZ::execute()
 
     if(result == 0){
         memoryInterface->incrementProgramCounterLow();
+        return 2; // execution time in cycles (1 for incf + 1 for skipping the next instruction)
     }
 
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string INCFSZ::getName()

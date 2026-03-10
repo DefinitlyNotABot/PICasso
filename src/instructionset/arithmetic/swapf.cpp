@@ -11,7 +11,7 @@ uint16_t SWAPF::execute()
     uint16_t result = ((fileValue << 4) | (fileValue >> 4)) & 0xFF;
     storeResult(result);
 
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string SWAPF::getName()

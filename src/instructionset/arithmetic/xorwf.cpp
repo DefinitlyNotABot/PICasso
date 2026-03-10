@@ -11,7 +11,7 @@ uint16_t XORWF::execute()
     uint16_t result = fileValue ^ WValue;
     storeResult(result);
     SET_ZERO_FLAG
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string XORWF::getName()

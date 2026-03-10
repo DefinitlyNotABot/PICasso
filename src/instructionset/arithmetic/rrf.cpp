@@ -17,7 +17,7 @@ uint16_t RRF::execute()
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, (fileValue & 0x01) != 0);
     SET_ZERO_FLAG
 
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string RRF::getName()

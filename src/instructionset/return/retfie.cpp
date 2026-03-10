@@ -8,8 +8,8 @@ RETFIE::RETFIE(uint16_t instruction){
 
 uint16_t RETFIE::execute()
 {
-    timer->timeStep();
-    return 0;
+    // TODO
+    return 2;
 }
 
 std::string RETFIE::getName()

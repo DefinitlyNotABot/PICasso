@@ -15,7 +15,7 @@ uint16_t ANDWF::execute()
 
     SET_ZERO_FLAG
 
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string ANDWF::getName()

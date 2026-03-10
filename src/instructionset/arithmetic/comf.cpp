@@ -11,7 +11,7 @@ uint16_t COMF::execute()
     uint16_t result = ~fileValue;
     storeResult(result);
     SET_ZERO_FLAG
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string COMF::getName()

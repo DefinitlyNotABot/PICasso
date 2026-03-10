@@ -9,9 +9,9 @@ uint16_t BTFSC::execute()
 {
     if(!memoryInterface->readBit(loadAddress(file), bit)){
         memoryInterface->incrementProgramCounterLow();
-        timer->timeStep();
+        return 2; // execution time in cycles (1 for btfsc + 1 for skipping the next instruction)
     }
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string BTFSC::getName()

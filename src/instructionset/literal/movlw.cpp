@@ -7,7 +7,7 @@ MOVLW::MOVLW(uint16_t instruction) {
 uint16_t MOVLW::execute()
 {
     W->writeByte(literal);
-    return 0;
+    return 1;
 }
 
 std::string MOVLW::getName()

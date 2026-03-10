@@ -42,8 +42,7 @@ int main()
                 continue;
             }
 
-            const uint64_t steps = state.executedSteps.fetch_add(1) + 1;
-            state.programTimeUs.store(steps);
+            state.programTimeUs.store(pic.getSimulatedTimeUs());
 
             if (dashMode) {
                 std::this_thread::yield();

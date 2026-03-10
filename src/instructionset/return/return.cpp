@@ -8,8 +8,7 @@ uint16_t RETURN::execute()
 {
     uint8_t returnAddress = memoryInterface->popFromStack();
     memoryInterface->setProgramCounter(returnAddress);
-    timer->timeStep();
-    return 0;
+    return 2;
 }
 
 std::string RETURN::getName()

@@ -8,7 +8,7 @@ BCF::BCF(uint16_t instruction) {
 uint16_t BCF::execute()
 {
     memoryInterface->writeBit(loadAddress(file), bit, false);
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string BCF::getName()

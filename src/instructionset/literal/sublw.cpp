@@ -11,7 +11,7 @@ uint16_t SUBLW::execute()
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, literal >= W->readByte());
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::DC, ((literal & 0x0F) - (W->readByte() & 0x0F)) >= 0);
     SET_ZERO_FLAG_W
-    return 0;
+    return 1;
 }
 
 std::string SUBLW::getName()

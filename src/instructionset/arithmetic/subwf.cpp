@@ -14,7 +14,7 @@ uint16_t SUBWF::execute()
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::DC, (fileValue & 0x0F) >= (WValue & 0x0F));
     SET_ZERO_FLAG
 
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string SUBWF::getName()

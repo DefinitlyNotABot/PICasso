@@ -8,7 +8,7 @@ uint16_t CLRF::execute()
 {
     memoryInterface->writeRegister(file, 0);
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::Z, true);
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string CLRF::getName()

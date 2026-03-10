@@ -11,7 +11,7 @@ uint16_t ADDLW::execute()
     W->writeByte(result);
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, result > 0xFF);
     SET_ZERO_FLAG_W
-    return 0;
+    return 1;
 }
 
 std::string ADDLW::getName()

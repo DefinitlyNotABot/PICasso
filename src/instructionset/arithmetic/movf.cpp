@@ -10,7 +10,7 @@ uint16_t MOVF::execute()
     loadCurrentValues();
     storeResult(fileValue);
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::Z, (fileValue & 0xFF) == 0);
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string MOVF::getName()

@@ -11,7 +11,7 @@ uint16_t INCF::execute()
     uint16_t result = (fileValue + 1) & 0xFF;
     storeResult(result);
     SET_ZERO_FLAG
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string INCF::getName()

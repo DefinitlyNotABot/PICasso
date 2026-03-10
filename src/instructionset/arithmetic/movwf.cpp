@@ -9,7 +9,7 @@ uint16_t MOVWF::execute()
 {
     loadCurrentValues();
     storeResult(WValue);
-    return 0;
+    return 1; // execution time in cycles
 }
 
 std::string MOVWF::getName()

@@ -18,6 +18,8 @@ class PIC{
         Program loadedProgram;
         Register W;
         Timer timer;
+
+        uint64_t totalSimulatedTimeUs = 0;
         
         std::shared_ptr<MemoryInterface> memoryInterface;
         std::shared_ptr<Prescaler> prescaler;
@@ -49,4 +51,5 @@ class PIC{
         bool tryToggleBit(uint8_t address, uint8_t bit, std::string* errorMessage = nullptr);
         bool tryToggleBit(uint8_t address, uint8_t bit, bool bank, std::string* errorMessage = nullptr);
         bool tryGetInstructionName(uint16_t index, std::string& instructionName, std::string* errorMessage = nullptr);
+        uint64_t getSimulatedTimeUs();
 };

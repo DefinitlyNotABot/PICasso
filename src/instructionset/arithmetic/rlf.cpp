@@ -17,7 +17,7 @@ uint16_t RLF::execute()
     memoryInterface->writeStatusBit(MemoryInterface::StatusBits::C, (fileValue & 0x80) != 0);
     SET_ZERO_FLAG
 
-    return 0;
+    return 1;
 }
 
 std::string RLF::getName()

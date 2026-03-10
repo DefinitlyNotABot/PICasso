@@ -7,5 +7,5 @@ class ALU{
     private:
         
     public:
-        void executeInstruction(Instruction &instruction);        
+        uint16_t executeInstruction(Instruction &instruction);        
 };
