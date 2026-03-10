@@ -432,32 +432,25 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
                     int clickedIdx = scrollOffset + (event.y - panelTop);
                     if (clickedIdx >= 0 && clickedIdx < static_cast<int>(entries.size()))
                     {
-                        if (clickedIdx == selected)
+                        selected = clickedIdx;
+                        const DirEntry& entry = entries[static_cast<size_t>(selected)];
+                        if (entry.isDirectory)
                         {
-                            // Double-click effect: select on second click
-                            const DirEntry& entry = entries[static_cast<size_t>(selected)];
-                            if (entry.isDirectory)
+                            fs::path newDir = (entry.name == "..") ? currentDir.parent_path() : currentDir / entry.name;
+                            std::error_code ec;
+                            fs::path resolved = fs::canonical(newDir, ec);
+                            if (!ec)
                             {
-                                fs::path newDir = (entry.name == "..") ? currentDir.parent_path() : currentDir / entry.name;
-                                std::error_code ec;
-                                fs::path resolved = fs::canonical(newDir, ec);
-                                if (!ec)
-                                {
-                                    currentDir = resolved;
-                                    selected = 0;
-                                    scrollOffset = 0;
-                                }
-                            }
-                            else
-                            {
-                                std::string result = (currentDir / entry.name).string();
-                                nodelay(stdscr, TRUE);
-                                return result;
+                                currentDir = resolved;
+                                selected = 0;
+                                scrollOffset = 0;
                             }
                         }
                         else
                         {
-                            selected = clickedIdx;
+                            std::string result = (currentDir / entry.name).string();
+                            nodelay(stdscr, TRUE);
+                            return result;
                         }
                     }
                 }
