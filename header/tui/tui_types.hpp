@@ -15,6 +15,7 @@ enum class HitType {
     RunButton,
     DashButton,
     ResetButton,
+    POResetButton,
     LoadButton,
     QuitButton
 };

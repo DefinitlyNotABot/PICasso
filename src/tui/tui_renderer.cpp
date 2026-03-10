@@ -174,10 +174,13 @@ void TUI_Renderer::drawControlPanel(const SimulationState& state, std::vector<Hi
     printWithColor(17, x + 13, CP_STATUS_WARN, A_BOLD, "[ RESET ]");
     hitBoxes.push_back(HitBox{17, x + 13, 8, 1, HitType::ResetButton, 0, 0});
 
-    printWithColor(18, x + 13, CP_BUTTON_DANGER, A_BOLD, "[ QUIT  ]");
-    hitBoxes.push_back(HitBox{18, x + 13, 8, 1, HitType::QuitButton, 0, 0});
+    printWithColor(18, x + 13, CP_STATUS_WARN, A_BOLD, "[PO RST ]");
+    hitBoxes.push_back(HitBox{18, x + 13, 9, 1, HitType::POResetButton, 0, 0});
 
-    printWithColor(19, x + 13, CP_LABEL, 0, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
+    printWithColor(19, x + 13, CP_BUTTON_DANGER, A_BOLD, "[ QUIT  ]");
+    hitBoxes.push_back(HitBox{19, x + 13, 8, 1, HitType::QuitButton, 0, 0});
+
+    printWithColor(20, x + 13, CP_LABEL, 0, "Steps: %llu", static_cast<unsigned long long>(state.executedSteps.load()));
 }
 
 void TUI_Renderer::addBitWidget(std::vector<HitBox>& hitBoxes, int y, int x, bool value, uint8_t address, uint8_t bit)

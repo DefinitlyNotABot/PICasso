@@ -218,6 +218,14 @@ void TUI_Controller::processHit(PIC& pic,
         state.programTimeUs.store(0);
         TUI_Helper::setStatus(state, "PIC reset");
         break;
+    case HitType::POResetButton:
+        state.runMode.store(false);
+        state.dashMode.store(false);
+        pic.powerOnReset();
+        state.executedSteps.store(0);
+        state.programTimeUs.store(0);
+        TUI_Helper::setStatus(state, "PIC power-on reset");
+        break;
     case HitType::LoadButton:
         state.runMode.store(false);
         state.dashMode.store(false);

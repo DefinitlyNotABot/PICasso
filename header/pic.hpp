@@ -31,6 +31,7 @@ class PIC{
         ~PIC();
         void loadProgram(const std::string& program);
         void reset();
+        void powerOnReset();
         void printState();
         void printStep(Instruction& instruction);
         uint8_t getProgramCounter();

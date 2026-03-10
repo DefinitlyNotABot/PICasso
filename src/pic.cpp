@@ -28,6 +28,14 @@ void PIC::loadProgram(const std::string& program)
 
 void PIC::reset(){
     std::lock_guard<std::mutex> lock(executionMutex);
+    memoryInterface->reset();
+    W.writeByte(0);
+    prescaler->reset();
+    totalSimulatedTimeUs = 0;
+}
+
+void PIC::powerOnReset(){
+    std::lock_guard<std::mutex> lock(executionMutex);
     memoryInterface->powerOnReset();
     W.writeByte(0);
     prescaler->reset();
