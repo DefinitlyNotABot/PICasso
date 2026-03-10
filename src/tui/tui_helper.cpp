@@ -4,6 +4,8 @@
 #include <cctype>
 #include <iomanip>
 #include <sstream>
+#include <algorithm>
+#include <filesystem>
 
 bool TUI_Helper::isInAsmPanel(int y, int x)
 {
@@ -162,4 +164,304 @@ short TUI_Helper::statusPairFromText(const std::string& status)
     }
 
     return CP_STATUS_OK;
+}
+
+namespace {
+
+struct DirEntry {
+    std::string name;
+    bool isDirectory;
+};
+
+std::vector<DirEntry> listDirectory(const std::filesystem::path& dir)
+{
+    std::vector<DirEntry> entries;
+
+    if (dir.has_parent_path() && dir.parent_path() != dir)
+    {
+        entries.push_back({"..", true});
+    }
+
+    std::vector<DirEntry> dirs;
+    std::vector<DirEntry> files;
+
+    std::error_code ec;
+    for (const auto& entry : std::filesystem::directory_iterator(dir, ec))
+    {
+        if (ec)
+        {
+            break;
+        }
+
+        std::string filename = entry.path().filename().string();
+
+        if (entry.is_directory(ec))
+        {
+            dirs.push_back({filename, true});
+        }
+        else if (entry.is_regular_file(ec))
+        {
+            std::string ext = entry.path().extension().string();
+            std::string extLower = ext;
+            for (char& c : extLower)
+            {
+                c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+            }
+            if (extLower == ".lst")
+            {
+                files.push_back({filename, false});
+            }
+        }
+    }
+
+    std::sort(dirs.begin(), dirs.end(), [](const DirEntry& a, const DirEntry& b) {
+        return a.name < b.name;
+    });
+    std::sort(files.begin(), files.end(), [](const DirEntry& a, const DirEntry& b) {
+        return a.name < b.name;
+    });
+
+    entries.insert(entries.end(), dirs.begin(), dirs.end());
+    entries.insert(entries.end(), files.begin(), files.end());
+    return entries;
+}
+
+} // anonymous namespace
+
+std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path& startDir)
+{
+    namespace fs = std::filesystem;
+
+    fs::path currentDir = fs::canonical(startDir);
+    int selected = 0;
+    int scrollOffset = 0;
+
+    nodelay(stdscr, FALSE);
+    curs_set(0);
+    keypad(stdscr, TRUE);
+    mousemask(ALL_MOUSE_EVENTS | REPORT_MOUSE_POSITION, nullptr);
+
+    for (;;)
+    {
+        std::vector<DirEntry> entries = listDirectory(currentDir);
+
+        if (selected >= static_cast<int>(entries.size()))
+        {
+            selected = entries.empty() ? 0 : static_cast<int>(entries.size()) - 1;
+        }
+
+        int maxY = 0;
+        int maxX = 0;
+        getmaxyx(stdscr, maxY, maxX);
+
+        int panelTop = 2;
+        int panelHeight = maxY - 4;
+        if (panelHeight < 3)
+        {
+            panelHeight = 3;
+        }
+
+        if (selected < scrollOffset)
+        {
+            scrollOffset = selected;
+        }
+        if (selected >= scrollOffset + panelHeight)
+        {
+            scrollOffset = selected - panelHeight + 1;
+        }
+
+        erase();
+
+        attron(A_BOLD | COLOR_PAIR(CP_HEADER));
+        mvprintw(0, 0, " Load .LST file ");
+        attroff(A_BOLD | COLOR_PAIR(CP_HEADER));
+
+        std::string dirStr = currentDir.string();
+        if (static_cast<int>(dirStr.size()) > maxX - 1)
+        {
+            dirStr = "..." + dirStr.substr(dirStr.size() - static_cast<size_t>(maxX - 4));
+        }
+        attron(COLOR_PAIR(CP_LABEL));
+        mvprintw(1, 0, "%s", dirStr.c_str());
+        attroff(COLOR_PAIR(CP_LABEL));
+
+        for (int i = 0; i < panelHeight && (scrollOffset + i) < static_cast<int>(entries.size()); ++i)
+        {
+            int idx = scrollOffset + i;
+            const DirEntry& entry = entries[static_cast<size_t>(idx)];
+
+            std::string display;
+            if (entry.isDirectory)
+            {
+                display = "[" + entry.name + "/]";
+            }
+            else
+            {
+                display = " " + entry.name;
+            }
+
+            if (static_cast<int>(display.size()) > maxX - 2)
+            {
+                display = display.substr(0, static_cast<size_t>(maxX - 5)) + "...";
+            }
+
+            if (idx == selected)
+            {
+                attron(A_REVERSE | COLOR_PAIR(CP_HIGHLIGHT));
+                mvprintw(panelTop + i, 1, "%-*s", maxX - 2, display.c_str());
+                attroff(A_REVERSE | COLOR_PAIR(CP_HIGHLIGHT));
+            }
+            else if (entry.isDirectory)
+            {
+                attron(COLOR_PAIR(CP_VALUE));
+                mvprintw(panelTop + i, 1, "%s", display.c_str());
+                attroff(COLOR_PAIR(CP_VALUE));
+            }
+            else
+            {
+                mvprintw(panelTop + i, 1, "%s", display.c_str());
+            }
+        }
+
+        attron(COLOR_PAIR(CP_LABEL));
+        mvprintw(maxY - 1, 0, " [Enter] Select  [q/Esc] Cancel  [Up/Down] Navigate");
+        attroff(COLOR_PAIR(CP_LABEL));
+
+        refresh();
+
+        int ch = getch();
+
+        if (ch == 'q' || ch == 'Q' || ch == 27) // Esc
+        {
+            nodelay(stdscr, TRUE);
+            return std::nullopt;
+        }
+
+        if (ch == KEY_UP || ch == 'k')
+        {
+            if (selected > 0)
+            {
+                --selected;
+            }
+        }
+        else if (ch == KEY_DOWN || ch == 'j')
+        {
+            if (selected < static_cast<int>(entries.size()) - 1)
+            {
+                ++selected;
+            }
+        }
+        else if (ch == KEY_PPAGE) // Page Up
+        {
+            selected -= panelHeight;
+            if (selected < 0)
+            {
+                selected = 0;
+            }
+        }
+        else if (ch == KEY_NPAGE) // Page Down
+        {
+            selected += panelHeight;
+            if (selected >= static_cast<int>(entries.size()))
+            {
+                selected = static_cast<int>(entries.size()) - 1;
+            }
+            if (selected < 0)
+            {
+                selected = 0;
+            }
+        }
+        else if (ch == '\n' || ch == KEY_ENTER)
+        {
+            if (entries.empty())
+            {
+                continue;
+            }
+
+            const DirEntry& entry = entries[static_cast<size_t>(selected)];
+
+            if (entry.isDirectory)
+            {
+                fs::path newDir;
+                if (entry.name == "..")
+                {
+                    newDir = currentDir.parent_path();
+                }
+                else
+                {
+                    newDir = currentDir / entry.name;
+                }
+
+                std::error_code ec;
+                fs::path resolved = fs::canonical(newDir, ec);
+                if (!ec)
+                {
+                    currentDir = resolved;
+                    selected = 0;
+                    scrollOffset = 0;
+                }
+            }
+            else
+            {
+                std::string result = (currentDir / entry.name).string();
+                nodelay(stdscr, TRUE);
+                return result;
+            }
+        }
+        else if (ch == KEY_MOUSE)
+        {
+            MEVENT event;
+            if (getmouse(&event) == OK)
+            {
+                if (event.bstate & BUTTON4_PRESSED) // scroll up
+                {
+                    if (selected > 0)
+                    {
+                        --selected;
+                    }
+                }
+                else if (event.bstate & BUTTON5_PRESSED) // scroll down
+                {
+                    if (selected < static_cast<int>(entries.size()) - 1)
+                    {
+                        ++selected;
+                    }
+                }
+                else if ((event.bstate & BUTTON1_CLICKED) || (event.bstate & BUTTON1_PRESSED))
+                {
+                    int clickedIdx = scrollOffset + (event.y - panelTop);
+                    if (clickedIdx >= 0 && clickedIdx < static_cast<int>(entries.size()))
+                    {
+                        if (clickedIdx == selected)
+                        {
+                            // Double-click effect: select on second click
+                            const DirEntry& entry = entries[static_cast<size_t>(selected)];
+                            if (entry.isDirectory)
+                            {
+                                fs::path newDir = (entry.name == "..") ? currentDir.parent_path() : currentDir / entry.name;
+                                std::error_code ec;
+                                fs::path resolved = fs::canonical(newDir, ec);
+                                if (!ec)
+                                {
+                                    currentDir = resolved;
+                                    selected = 0;
+                                    scrollOffset = 0;
+                                }
+                            }
+                            else
+                            {
+                                std::string result = (currentDir / entry.name).string();
+                                nodelay(stdscr, TRUE);
+                                return result;
+                            }
+                        }
+                        else
+                        {
+                            selected = clickedIdx;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

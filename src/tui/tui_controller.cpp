@@ -1,4 +1,5 @@
 #include "tui_controller.hpp"
+#include <filesystem>
 
 namespace {
 constexpr uint8_t kBankMask = 0x80;
@@ -88,8 +89,26 @@ void TUI_Controller::handleMouseEvent(PIC& pic,
 
 void TUI_Controller::handleLoadFile(PIC& pic, SimulationState& state)
 {
-    auto text = TUI_Helper::promptInput("File path: ");
-    if (!text || text->empty())
+    std::filesystem::path startDir = std::filesystem::current_path();
+    {
+        std::lock_guard<std::mutex> lock(state.statusMutex);
+        if (!state.loadedProgramPath.empty())
+        {
+            std::filesystem::path loaded(state.loadedProgramPath);
+            if (loaded.has_parent_path())
+            {
+                std::error_code ec;
+                auto parentDir = std::filesystem::canonical(loaded.parent_path(), ec);
+                if (!ec)
+                {
+                    startDir = parentDir;
+                }
+            }
+        }
+    }
+
+    auto chosen = TUI_Helper::browseForFile(startDir);
+    if (!chosen || chosen->empty())
     {
         TUI_Helper::setStatus(state, "Load canceled");
         return;
@@ -97,14 +116,14 @@ void TUI_Controller::handleLoadFile(PIC& pic, SimulationState& state)
 
     try
     {
-        pic.loadProgram(*text);
+        pic.loadProgram(*chosen);
         pic.reset();
         state.executedSteps.store(0);
         state.programTimeUs.store(0);
         {
             std::lock_guard<std::mutex> lock(state.statusMutex);
-            state.loadedProgramPath = *text;
-            state.statusMessage = "Loaded file " + *text;
+            state.loadedProgramPath = *chosen;
+            state.statusMessage = "Loaded file " + *chosen;
         }
     }
     catch (const std::exception& ex)

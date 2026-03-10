@@ -1,5 +1,6 @@
 #pragma once
 #include "tui_types.hpp"
+#include <filesystem>
 
 class TUI_Helper {
     public:
@@ -9,6 +10,7 @@ class TUI_Helper {
 
         static bool contains(const HitBox &hit, int y, int x);
         static std::optional<std::string> promptInput(const std::string &prompt);
+        static std::optional<std::string> browseForFile(const std::filesystem::path &startDir);
         static void setStatus(SimulationState &state, const std::string &message);
         static bool parseHexByte(const std::string &text, uint8_t &output);
         static std::string toHex2(uint8_t value);

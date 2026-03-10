@@ -14,10 +14,7 @@ int main()
 
     PIC pic;
     SimulationState state;
-    state.loadedProgramPath = "progs/TPicSim6.LST";
-    state.statusMessage = "Ready";
-
-    pic.loadProgram(state.loadedProgramPath);
+    state.statusMessage = "No file loaded - click [load file]";
 
     std::thread simulationThread([&pic, &state]() {
         while (!state.quit.load()) {
