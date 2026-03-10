@@ -6,6 +6,7 @@
 #include <sstream>
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 
 bool TUI_Helper::isInAsmPanel(int y, int x)
 {
@@ -236,6 +237,30 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
     int selected = 0;
     int scrollOffset = 0;
 
+    // Cache for preview: path → lines
+    std::string cachedPreviewPath;
+    std::vector<std::string> cachedPreviewLines;
+
+    auto loadPreview = [&](const fs::path& filePath) -> const std::vector<std::string>& {
+        std::string pathStr = filePath.string();
+        if (pathStr == cachedPreviewPath)
+        {
+            return cachedPreviewLines;
+        }
+        cachedPreviewPath = pathStr;
+        cachedPreviewLines.clear();
+        std::ifstream ifs(pathStr);
+        if (ifs.is_open())
+        {
+            std::string line;
+            while (std::getline(ifs, line))
+            {
+                cachedPreviewLines.push_back(line);
+            }
+        }
+        return cachedPreviewLines;
+    };
+
     nodelay(stdscr, FALSE);
     curs_set(0);
     keypad(stdscr, TRUE);
@@ -261,6 +286,19 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
             panelHeight = 3;
         }
 
+        // Split: left = file list, right = preview
+        int listWidth = maxX / 3;
+        if (listWidth < 20)
+        {
+            listWidth = 20;
+        }
+        if (listWidth > maxX - 10)
+        {
+            listWidth = maxX - 10;
+        }
+        int previewLeft = listWidth + 1;
+        int previewWidth = maxX - previewLeft;
+
         if (selected < scrollOffset)
         {
             scrollOffset = selected;
@@ -277,14 +315,15 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
         attroff(A_BOLD | COLOR_PAIR(CP_HEADER));
 
         std::string dirStr = currentDir.string();
-        if (static_cast<int>(dirStr.size()) > maxX - 1)
+        if (static_cast<int>(dirStr.size()) > listWidth - 1)
         {
-            dirStr = "..." + dirStr.substr(dirStr.size() - static_cast<size_t>(maxX - 4));
+            dirStr = "..." + dirStr.substr(dirStr.size() - static_cast<size_t>(listWidth - 4));
         }
         attron(COLOR_PAIR(CP_LABEL));
         mvprintw(1, 0, "%s", dirStr.c_str());
         attroff(COLOR_PAIR(CP_LABEL));
 
+        // Draw file list on left side
         for (int i = 0; i < panelHeight && (scrollOffset + i) < static_cast<int>(entries.size()); ++i)
         {
             int idx = scrollOffset + i;
@@ -300,15 +339,15 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
                 display = " " + entry.name;
             }
 
-            if (static_cast<int>(display.size()) > maxX - 2)
+            if (static_cast<int>(display.size()) > listWidth - 2)
             {
-                display = display.substr(0, static_cast<size_t>(maxX - 5)) + "...";
+                display = display.substr(0, static_cast<size_t>(listWidth - 5)) + "...";
             }
 
             if (idx == selected)
             {
                 attron(A_REVERSE | COLOR_PAIR(CP_HIGHLIGHT));
-                mvprintw(panelTop + i, 1, "%-*s", maxX - 2, display.c_str());
+                mvprintw(panelTop + i, 1, "%-*s", listWidth - 2, display.c_str());
                 attroff(A_REVERSE | COLOR_PAIR(CP_HIGHLIGHT));
             }
             else if (entry.isDirectory)
@@ -321,6 +360,56 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
             {
                 mvprintw(panelTop + i, 1, "%s", display.c_str());
             }
+        }
+
+        // Draw separator line
+        for (int row = panelTop - 1; row < panelTop + panelHeight; ++row)
+        {
+            mvaddch(row, listWidth, ACS_VLINE);
+        }
+
+        // Draw preview panel on right side
+        bool showingPreview = false;
+        if (selected >= 0 && selected < static_cast<int>(entries.size()) && !entries[static_cast<size_t>(selected)].isDirectory)
+        {
+            fs::path filePath = currentDir / entries[static_cast<size_t>(selected)].name;
+            const std::vector<std::string>& lines = loadPreview(filePath);
+            showingPreview = true;
+
+            attron(A_BOLD | COLOR_PAIR(CP_HEADER));
+            std::string previewTitle = " Preview: " + entries[static_cast<size_t>(selected)].name + " ";
+            if (static_cast<int>(previewTitle.size()) > previewWidth)
+            {
+                previewTitle = previewTitle.substr(0, static_cast<size_t>(previewWidth - 3)) + "...";
+            }
+            mvprintw(1, previewLeft, "%s", previewTitle.c_str());
+            attroff(A_BOLD | COLOR_PAIR(CP_HEADER));
+
+            for (int i = 0; i < panelHeight && i < static_cast<int>(lines.size()); ++i)
+            {
+                std::string line = lines[static_cast<size_t>(i)];
+                if (static_cast<int>(line.size()) > previewWidth - 1)
+                {
+                    line = line.substr(0, static_cast<size_t>(previewWidth - 1));
+                }
+                attron(COLOR_PAIR(CP_LABEL));
+                mvprintw(panelTop + i, previewLeft, "%s", line.c_str());
+                attroff(COLOR_PAIR(CP_LABEL));
+            }
+
+            if (lines.empty())
+            {
+                attron(COLOR_PAIR(CP_STATUS_WARN));
+                mvprintw(panelTop, previewLeft, "(empty file)");
+                attroff(COLOR_PAIR(CP_STATUS_WARN));
+            }
+        }
+
+        if (!showingPreview)
+        {
+            attron(COLOR_PAIR(CP_LABEL));
+            mvprintw(panelTop, previewLeft, "Select a .LST file to preview");
+            attroff(COLOR_PAIR(CP_LABEL));
         }
 
         attron(COLOR_PAIR(CP_LABEL));
@@ -429,28 +518,31 @@ std::optional<std::string> TUI_Helper::browseForFile(const std::filesystem::path
                 }
                 else if ((event.bstate & BUTTON1_CLICKED) || (event.bstate & BUTTON1_PRESSED))
                 {
-                    int clickedIdx = scrollOffset + (event.y - panelTop);
-                    if (clickedIdx >= 0 && clickedIdx < static_cast<int>(entries.size()))
+                    if (event.x < listWidth)
                     {
-                        selected = clickedIdx;
-                        const DirEntry& entry = entries[static_cast<size_t>(selected)];
-                        if (entry.isDirectory)
+                        int clickedIdx = scrollOffset + (event.y - panelTop);
+                        if (clickedIdx >= 0 && clickedIdx < static_cast<int>(entries.size()))
                         {
-                            fs::path newDir = (entry.name == "..") ? currentDir.parent_path() : currentDir / entry.name;
-                            std::error_code ec;
-                            fs::path resolved = fs::canonical(newDir, ec);
-                            if (!ec)
+                            selected = clickedIdx;
+                            const DirEntry& entry = entries[static_cast<size_t>(selected)];
+                            if (entry.isDirectory)
                             {
-                                currentDir = resolved;
-                                selected = 0;
-                                scrollOffset = 0;
+                                fs::path newDir = (entry.name == "..") ? currentDir.parent_path() : currentDir / entry.name;
+                                std::error_code ec;
+                                fs::path resolved = fs::canonical(newDir, ec);
+                                if (!ec)
+                                {
+                                    currentDir = resolved;
+                                    selected = 0;
+                                    scrollOffset = 0;
+                                }
                             }
-                        }
-                        else
-                        {
-                            std::string result = (currentDir / entry.name).string();
-                            nodelay(stdscr, TRUE);
-                            return result;
+                            else
+                            {
+                                std::string result = (currentDir / entry.name).string();
+                                nodelay(stdscr, TRUE);
+                                return result;
+                            }
                         }
                     }
                 }
