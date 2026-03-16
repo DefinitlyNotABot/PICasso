@@ -13,6 +13,8 @@ PIC::PIC() : alu(), loadedProgram(), logger("PIC")
     Instruction::memoryInterface = memoryInterface;
     Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
 
+    interrupts = Interrupts(memoryInterface);
+
     Jump::timer = std::make_shared<Timer>(timer);
 }
 
@@ -134,6 +136,7 @@ bool PIC::tryStep(std::string* errorMessage)
 
     try
     {
+        interrupts.checkInterrupts();
         uint8_t programCounter = memoryInterface->getProgramCounter();
         memoryInterface->incrementProgramCounterLow();
         Instruction& currentInstruction = loadedProgram.getInstructionAt(programCounter);
