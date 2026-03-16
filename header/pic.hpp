@@ -10,6 +10,7 @@
 #include "register.hpp"
 #include "tui_types.hpp"
 #include "timer.hpp"
+#include "interrupts.hpp"
 
 class PIC{
     private:
@@ -18,6 +19,7 @@ class PIC{
         Program loadedProgram;
         Register W;
         Timer timer;
+        Interrupts interrupts;
         
         std::shared_ptr<MemoryInterface> memoryInterface;
         std::shared_ptr<Prescaler> prescaler;
