@@ -10,7 +10,7 @@ void Interrupts::gotInterrupted()
 {
     memoryInterface->writeBit(INTCON_REGISTER, GIE_BIT, 0);
     memoryInterface->pushToStack(memoryInterface->getProgramCounter());
-    memoryInterface->setProgramCounter(0x04);
+    memoryInterface->setProgramCounter(4);
 }
 
 Interrupts::Interrupts()
@@ -25,7 +25,7 @@ Interrupts::~Interrupts()
 {
 }
 
-uint8_t Interrupts::checkInterrupts()
+void Interrupts::checkInterrupts()
 {
     checkINTCON();
 

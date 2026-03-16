@@ -37,5 +37,5 @@ public:
     Interrupts(std::shared_ptr<MemoryInterface> memoryInterface);
     ~Interrupts();
 
-    uint8_t checkInterrupts();
+    void checkInterrupts();
 };
