@@ -33,6 +33,7 @@ private:
     void gotInterrupted();
 
 public:
+    Interrupts();
     Interrupts(std::shared_ptr<MemoryInterface> memoryInterface);
     ~Interrupts();
 

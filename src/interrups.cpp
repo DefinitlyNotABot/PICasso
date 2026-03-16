@@ -13,6 +13,10 @@ void Interrupts::gotInterrupted()
     memoryInterface->setProgramCounter(0x04);
 }
 
+Interrupts::Interrupts()
+{
+}
+
 Interrupts::Interrupts(std::shared_ptr<MemoryInterface> memoryInterface) : memoryInterface(memoryInterface)
 {
 }
