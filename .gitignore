@@ -2,3 +2,17 @@
 .cache/
 .vscode/
 .vscode/**/*
+
+# latex aux files
+*.aux
+*.bbl
+*.blg
+*.brf
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk

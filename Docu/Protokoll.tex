@@ -1,0 +1,818 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[ngerman]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{amssymb}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+
+\hypersetup{
+    hidelinks
+}
+
+\lstdefinestyle{codeblock}{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    columns=fullflexible,
+    keepspaces=true,
+    showstringspaces=false,
+    literate=
+        {ä}{{\"a}}1
+        {ö}{{\"o}}1
+        {ü}{{\"u}}1
+        {Ä}{{\"A}}1
+        {Ö}{{\"O}}1
+        {Ü}{{\"U}}1
+        {ß}{{\ss}}1
+        {–}{{--}}1
+        {≥}{{$\geq$}}1
+        {→}{{$\rightarrow$}}1
+}
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\umlplaceholder}[1]{
+    \begin{center}
+        \fbox{\parbox{0.9\textwidth}{\centering\textit{#1}}}
+    \end{center}
+}
+
+\setlist[itemize]{topsep=4pt,itemsep=2pt}
+\setlist[enumerate]{topsep=4pt,itemsep=2pt}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\LARGE Programmentwurf - Protokoll\par}
+    \vspace{0.5cm}
+    {\Large PICasso -- PIC Microcontroller Simulator\par}
+    \vfill
+    {\large Name: Wachsmann, Nik\par}
+    \vspace{0.2cm}
+    {\large Matrikelnummer: [MNR]\par}
+    \vspace{0.5cm}
+    {\large Name: Stahl, Ben\par}
+    \vspace{0.2cm}
+    {\large Matrikelnummer: 8238700\par}
+    \vspace{0.5cm}
+    {\large Abgabedatum: 04.05.2026\par}
+    \vfill
+\end{titlepage}
+
+\section{Kapitel 1: Einführung (4P)}
+
+\subsection{Übersicht über die Applikation (1P)}
+
+\textbf{PICasso} ist ein Simulator für PIC-Midrange-Mikrocontroller (z.B. PIC16F84), geschrieben in C++17. Die Applikation liest assemblierte PIC-Programme im \code{.LST}-Format ein und führt diese Instruktion für Instruktion aus. Dabei werden alle wesentlichen Hardwarekomponenten des PIC simuliert: ein 2-Bank-RAM mit Registerspiegelung, ein 8-Bit-W-Akkumulator, ein 8-Level-Hardware-Stack, ein Timer/Prescaler-Subsystem sowie die vollständige Ausführung aller 35 PIC-Midrange-Instruktionen.
+
+Die Applikation bietet eine interaktive Terminal-Oberfläche (ncurses), über die der Benutzer Programme laden, schrittweise oder im Dauerlauf ausführen, RAM-Inhalte inspizieren und modifizieren sowie einzelne Bits umschalten kann. Die Simulation läuft in einem separaten Thread, während die UI im Hauptthread rendert -- synchronisiert über atomare Flags und Mutexe.
+
+\textbf{Zweck:} PICasso löst das Problem, PIC-Assemblerprogramme ohne physische Hardware testen und debuggen zu können. Es dient als Lern- und Entwicklungswerkzeug für eingebettete Systeme.
+
+\subsection{Starten der Applikation (1P)}
+
+\textbf{Voraussetzungen:}
+
+\begin{itemize}
+    \item C++17-kompatibler Compiler (z.B. g++ $\geq$ 9)
+    \item CMake $\geq$ 3.14
+    \item ncurses-Bibliothek (\code{libncurses-dev} unter Linux)
+\end{itemize}
+
+\textbf{Schritt-für-Schritt-Anleitung:}
+
+\begin{lstlisting}[style=codeblock]
+# 1. Repository klonen / Projektverzeichnis wechseln
+git clone https://github.com/DefinitlyNotABot/PICasso.git
+cd PICasso
+
+# 2. Build-Verzeichnis erstellen und CMake konfigurieren
+mkdir -p build && cd build
+cmake ..
+
+# 3. Projekt kompilieren
+make
+
+# 4. Simulator starten
+./PICasso
+
+# 5. Tests ausführen (optional)
+cd ..
+./build/AllTests
+\end{lstlisting}
+
+Nach dem Start öffnet sich die ncurses-Oberfläche. Über den \emph{Load}-Button kann eine \code{.LST}-Datei aus dem \code{progs/}-Verzeichnis geladen werden. Anschließend kann das Programm mit \emph{Step}, \emph{Run} (Dauerlauf) oder \emph{Dash} (Schnelllauf) ausgeführt werden.
+
+\subsection{Technischer Überblick (2P)}
+
+\begin{longtable}{|p{0.18\textwidth}|p{0.22\textwidth}|p{0.5\textwidth}|}
+\hline
+\textbf{Technologie} & \textbf{Beschreibung} & \textbf{Begründung} \\
+\hline
+C++17 & Primäre Programmiersprache & Bietet hardwarenahe Kontrolle, geeignet für Simulator-Entwicklung; unterstützt \code{std::optional}, \code{std::shared_ptr}, \code{std::filesystem} und strukturierte Bindings. \\
+\hline
+CMake & Build-System & Plattformunabhängiges Build-System; ermöglicht automatisches Herunterladen von Abhängigkeiten (Catch2) via \code{FetchContent}. \\
+\hline
+ncurses & Terminal-UI-Bibliothek & Ermöglicht eine interaktive TUI ohne grafische Abhängigkeiten; ideal für ein konsolenbasiertes Debugging-Tool. Unterstützt Farben, Mauseingabe und Fenstermanagement. \\
+\hline
+Catch2 & Unit-Test-Framework & Header-only-Framework mit BDD-Stil (\code{TEST_CASE}/\code{SECTION}); automatische Testregistrierung und Generatoren (\code{GENERATE}). \\
+\hline
+nlohmann/json & JSON-Parsing für Testdateien & Erlaubt deklarative Testspezifikation in JSON-Dateien; einfache Integration als Header-only-Bibliothek. \\
+\hline
+\code{std::thread / std::mutex / std::atomic} & Multithreading & Simulation und UI laufen parallel; atomare Flags steuern den Simulationszustand. \\
+\hline
+\end{longtable}
+
+\section{Kapitel 2: Softwarearchitektur (8P)}
+
+\subsection{Clean Architecture (4P)}
+
+Die Applikation orientiert sich an einer geschichteten Architektur, die Elemente der Clean Architecture aufgreift:
+
+\begin{itemize}
+    \item \textbf{Domain / Entities (innerster Ring):} Die Memory-Abstraktion (\code{Bit}, \code{Nibble}, \code{Byte}, \code{Register}) sowie \code{Ram}, \code{Stack} und \code{MemoryInterface}. Diese Klassen modellieren die Hardwaredomäne des PIC-Mikrocontrollers und haben keine Abhängigkeiten zu Framework- oder UI-Code.
+    \item \textbf{Use Cases / Application Layer:} \code{Instruction} (mit allen 35+ Unterklassen), \code{ALU}, \code{Compiler}, \code{Program}, \code{Timer}, \code{Prescaler} und \code{PIC}. Diese Schicht orchestriert die Simulation und nutzt die Domain-Klassen.
+    \item \textbf{Interface Adapters:} \code{Filereader} (Dateisystem-Zugriff), \code{Logger} (Ausgabe-Abstraktion).
+    \item \textbf{Frameworks / UI (äußerster Ring):} \code{TerminalUI}, \code{TUI_Renderer}, \code{TUI_Controller} und alle TUI-Hilfsklassen. Diese hängen von ncurses ab und nutzen \code{PICSnapshot} als Daten-Transfer-Objekt.
+\end{itemize}
+
+\umlplaceholder{UML-Klassendiagramm: Schichten der Architektur mit Bit$\rightarrow$Nibble$\rightarrow$Byte$\rightarrow$Register$\rightarrow$Ram$\rightarrow$MemoryInterface$\rightarrow$PIC$\rightarrow$TerminalUI}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/1.png}
+\end{center}
+
+\subsection{Domain Code (1P)}
+
+\textbf{Domain Code} ist Code, der die fachliche Logik der Anwendungsdomäne abbildet -- unabhängig von Frameworks, Datenbanken oder UI. Im Fall von PICasso ist die Domäne die PIC-Mikrocontroller-Hardware.
+
+\textbf{Beispiel:} Die Klasse \code{Stack} (\code{header/stack.hpp}) modelliert den 8-Level-Hardware-Stack des PIC. Sie hat keine Abhängigkeiten zu externen Bibliotheken und bildet rein fachliche Hardware-Logik ab:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class Stack {
+    private:
+        uint8_t stack[8];
+        uint8_t stackPointer;
+    public:
+        Stack();
+        void push(uint8_t value);
+        uint8_t pop();
+        void reset();
+};
+\end{lstlisting}
+
+\subsection{Analyse der Dependency Rule (3P)}
+
+Die Dependency Rule besagt, dass Abhängigkeiten immer von außen nach innen zeigen sollen -- äußere Schichten dürfen innere kennen, aber nicht umgekehrt.
+
+\subsubsection{Positiv-Beispiel: Dependency Rule}
+
+Die Klasse \code{Register} (Domain/Entity) hat keine Abhängigkeiten zu äußeren Schichten. Sie hängt nur von \code{Byte} ab, welches wiederum nur von \code{Nibble} und \code{Bit} abhängt -- alles innerhalb der Domain-Schicht. Die äußere Schicht \code{Ram} hängt von \code{Register} ab, aber \code{Register} weiß nichts von \code{Ram}. Die Abhängigkeit zeigt korrekt von außen nach innen.
+
+\umlplaceholder{UML: Register $\rightarrow$ Byte $\rightarrow$ Nibble $\rightarrow$ Bit (reine Domain-Schicht, keine Rückabhängigkeit)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/2.png}
+\end{center}
+
+\subsubsection{Negativ-Beispiel: Dependency Rule}
+
+Die abstrakte Klasse \code{Instruction} (Application Layer) hat ein \textbf{statisches} Feld \code{static std::shared_ptr<MemoryInterface> memoryInterface}, das durch die \code{PIC}-Klasse gesetzt wird. Das bedeutet, dass die Application-Layer-Klasse \code{Instruction} direkt an die konkrete Implementierung \code{MemoryInterface} gekoppelt ist. Zudem wird das statische Feld von \code{PIC} (einem Orchestrator) gesetzt -- eine implizite Abhängigkeit von außen nach innen, die zur Laufzeit besteht, obwohl die Instruction-Klasse eigentlich keine Kenntnis über PIC haben sollte.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// In header/instruction.hpp:
+class Instruction {
+    protected:
+        static std::shared_ptr<MemoryInterface> memoryInterface;  // globale Kopplung
+        static std::shared_ptr<Register> W;
+    ...
+};
+
+// In src/pic.cpp:
+PIC::PIC() {
+    Instruction::memoryInterface = memoryInterface;  // PIC setzt statisches Feld
+    Instruction::W = std::shared_ptr<Register>(&W, [](Register*) {});
+}
+\end{lstlisting}
+
+\textbf{Lösung:} Dependency Injection -- die \code{MemoryInterface}-Referenz sollte als Konstruktor-Parameter an jede Instruction übergeben werden, statt über ein statisches Feld.
+
+\umlplaceholder{UML: Instruction --static$\rightarrow$ MemoryInterface $\leftarrow$setzt-- PIC (Verletzung: zirkuläre implizite Abhängigkeit)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/3.png}
+\end{center}
+
+\section{Kapitel 3: SOLID (8P)}
+
+\subsection{Analyse SRP (3P)}
+
+\emph{[Jeweils eine Klasse als positives und negatives Beispiel für SRP; jeweils UML und Beschreibung der Aufgabe bzw. der Aufgaben und möglicher Lösungsweg des Negativ-Beispiels (inkl. UML)]}
+
+\subsubsection{Positiv-Beispiel}
+
+\textbf{Klasse: \code{Stack}} (\code{header/stack.hpp})
+
+Die Klasse \code{Stack} hat genau eine Verantwortlichkeit: die Verwaltung eines 8-Level-LIFO-Stacks für Rücksprungadressen. Sie bietet ausschließlich \code{push()}, \code{pop()} und \code{reset()}. Es gibt keinen Grund, diese Klasse zu ändern, außer wenn sich die Stack-Logik des PIC ändert -- also genau ein Änderungsgrund.
+
+\umlplaceholder{UML: Stack mit Attributen stack[8], stackPointer und Methoden push(), pop(), reset()}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/4.png}
+\end{center}
+
+\subsubsection{Negativ-Beispiel}
+
+\textbf{Klasse: \code{PIC}} (\code{header/pic.hpp})
+
+Die \code{PIC}-Klasse ist ein \enquote{God Object} mit mehreren Verantwortlichkeiten:
+
+\begin{enumerate}
+    \item Simulationsorchestrierung (Instruktionsausführung, Timer-Schritte)
+    \item Programmmanagement (Laden, Kompilieren)
+    \item Thread-sichere Zustandsabfragen für die UI (\code{getSnapshot()})
+    \item Zustandsmanipulation für Debugging (\code{tryWriteRegister()}, \code{tryToggleBit()})
+    \item Initialisierung aller Komponenten (Prescaler, Timer, statische Felder von \code{Instruction})
+\end{enumerate}
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class PIC {
+    ALU alu;
+    Program loadedProgram;
+    Register W;
+    Timer timer;
+    std::shared_ptr<MemoryInterface> memoryInterface;
+    std::shared_ptr<Prescaler> prescaler;
+    uint64_t totalSimulatedTimeUs;
+    mutable std::mutex executionMutex;
+    Logger logger;
+    // ... 15+ öffentliche Methoden
+};
+\end{lstlisting}
+
+\textbf{Lösungsweg:} Die Klasse sollte aufgeteilt werden in:
+
+\begin{itemize}
+    \item \code{PICHardware} -- hält Register, RAM, Timer (Hardware-Zustand)
+    \item \code{PICSimulator} -- orchestriert Instruktionsausführung
+    \item \code{PICDebugInterface} -- bietet thread-sichere Zugriffsmethoden für die UI
+\end{itemize}
+
+\umlplaceholder{UML: PIC (vorher) $\rightarrow$ aufgeteilt in PICHardware, PICSimulator, PICDebugInterface (nachher)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/51.png}
+\end{center}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/52.png}
+\end{center}
+
+\subsection{Analyse OCP (3P)}
+
+\emph{[Jeweils eine Klasse als positives und negatives Beispiel für OCP]}
+
+\subsubsection{Positiv-Beispiel}
+
+\textbf{Klasse: \code{Instruction}} (abstrakte Basisklasse, \code{header/instruction.hpp})
+
+Die Klasse \code{Instruction} definiert die abstrakte Schnittstelle \code{virtual uint16_t execute() = 0}. Neue Instruktionstypen können durch Erstellen neuer Unterklassen hinzugefügt werden, ohne die Basisklasse zu modifizieren. Das Verhalten wird durch Vererbung erweitert. Beispiel: Um eine neue Instruktion hinzuzufügen, wird eine neue Klasse erstellt, die \code{Instruction} erbt und \code{execute()} implementiert.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class Instruction {
+    public:
+        virtual uint16_t execute() = 0;   // offen für Erweiterung
+        virtual std::string getName() = 0;
+        virtual ~Instruction() = default;
+};
+
+class ADDWF : public Arithmetic {  // Erweiterung ohne Änderung der Basis
+    public:
+        uint16_t execute() override;
+        std::string getName() override;
+};
+\end{lstlisting}
+
+\umlplaceholder{UML: Instruction (abstract) $\triangleleft$-- Arithmetic $\triangleleft$-- ADDWF, SUBWF, ... | Instruction $\triangleleft$-- Bitwise $\triangleleft$-- BCF, BSF, ...}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/6.png}
+\end{center}
+
+\subsubsection{Negativ-Beispiel}
+
+\textbf{Klasse: \code{Compiler}} (\code{src/compiler.cpp})
+
+Die Methode \code{Compiler::getInstruction()} enthält eine große Switch-Kaskade, die für jede Instruktion einen expliziten Case hat. Wenn eine neue Instruktion hinzugefügt wird, muss die Methode \code{getInstruction()} modifiziert werden -- ein klarer Verstoß gegen das Open/Closed Principle.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+std::unique_ptr<Instruction> Compiler::getInstruction(const uint16_t instruction) {
+    switch(instruction) {
+        case 0x0064: return std::make_unique<CLRWDT>(instruction);
+        case 0x0009: return std::make_unique<RETFIE>(instruction);
+        case 0x0008: return std::make_unique<RETURN>(instruction);
+        case 0x0063: return std::make_unique<SLEEP>(instruction);
+        // ... ~35 weitere Cases
+    }
+    // ... weitere Switch-Blöcke mit Bitmasks
+}
+\end{lstlisting}
+
+\textbf{Lösung:} Ein Registry-Pattern / Factory-Map, bei der jede Instruktionsklasse sich selbst registriert:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Instruction-Factory mit Registry
+using InstructionFactory = std::function<std::unique_ptr<Instruction>(uint16_t)>;
+std::map<uint16_t, InstructionFactory> instructionRegistry;
+
+// Registrierung in der jeweiligen Instruktionsklasse:
+static bool registered = []() {
+    instructionRegistry[0x0700] = [](uint16_t op) {
+        return std::make_unique<ADDWF>(op);
+    };
+    return true;
+}();
+\end{lstlisting}
+
+\umlplaceholder{UML: Compiler --verwendet$\rightarrow$ InstructionRegistry --erzeugt$\rightarrow$ Instruction-Unterklassen}
+
+\subsection{Analyse DIP (2P)}
+
+\emph{[Dependency Inversion Principle: jeweils eine Klasse als positives und negatives Beispiel]}
+
+\subsubsection{Positiv-Beispiel}
+
+\textbf{Klasse: \code{ALU}} (\code{header/alu.hpp})
+
+Die \code{ALU} hängt von der abstrakten Schnittstelle \code{Instruction} ab, nicht von konkreten Instruktionsimplementierungen. Die Methode \code{executeInstruction(Instruction&)} akzeptiert eine Referenz auf die abstrakte Basisklasse. Dadurch kann die ALU jede beliebige Instruktion ausführen, ohne konkrete Klassen zu kennen:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class ALU {
+    public:
+        uint16_t executeInstruction(Instruction& instruction) {
+            return instruction.execute();
+        }
+};
+\end{lstlisting}
+
+Die ALU hängt von der Abstraktion (\code{Instruction}) ab, nicht von den Details (\code{ADDWF}, \code{SUBWF}, etc.) -- konform mit DIP.
+
+\subsubsection{Negativ-Beispiel}
+
+\textbf{Klasse: \code{Instruction}} (alle Unterklassen)
+
+Alle Instruktionen hängen direkt von der konkreten Klasse \code{MemoryInterface} ab (über ein statisches Feld). Es gibt kein Interface oder abstrakte Klasse, gegen die programmiert wird. Falls die Speicherverwaltung anders implementiert werden soll (z.B. für Tests mit Mock-Speicher), muss die konkrete \code{MemoryInterface}-Klasse geändert werden.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class Instruction {
+    protected:
+        static std::shared_ptr<MemoryInterface> memoryInterface;  // konkrete Klasse, kein Interface
+};
+\end{lstlisting}
+
+\textbf{Lösung:} Ein abstraktes Interface \code{IMemoryInterface} einführen, von dem \code{MemoryInterface} erbt. Die \code{Instruction}-Klasse hängt dann nur vom Interface ab:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class IMemoryInterface {
+    public:
+        virtual uint8_t readRegister(uint8_t address) = 0;
+        virtual void writeRegister(uint8_t address, uint8_t value) = 0;
+        virtual ~IMemoryInterface() = default;
+};
+\end{lstlisting}
+
+\umlplaceholder{UML: Instruction $\rightarrow$ IMemoryInterface (abstract) $\triangleleft$-- MemoryInterface (concrete)}
+
+\section{Kapitel 4: Weitere Prinzipien (8P)}
+
+\subsection{Analyse GRASP: Geringe Kopplung (3P)}
+
+\textbf{Klasse: \code{Filereader}} (\code{header/filereader.hpp})
+
+Die Klasse \code{Filereader} hat eine minimale Kopplung zu anderen Klassen. Sie bietet eine einzige öffentliche Methode \code{readFile(filename) -> tuple<bool, string>}, die eine Datei liest und den Inhalt zurückgibt. Sie hat keine Abhängigkeiten zu PIC-spezifischen Klassen.
+
+\textbf{Aufrufer:} Nur die Klasse \code{Program} nutzt \code{Filereader} in der Methode \code{loadProgram()}. Ebenso nutzt \code{TUI_Controller} sie indirekt über \code{Program}. Da \code{Filereader} nur Standard-C++-Bibliotheken verwendet und keine PIC-spezifischen Typen kennt, kann sie problemlos wiederverwendet oder ausgetauscht werden. Die Kopplung ist gering, weil:
+
+\begin{itemize}
+    \item Nur 1 Nutzer (\code{Program}) ist direkt abhängig
+    \item Keine Kenntnis über die Domäne (PIC-Simulation)
+    \item Rückgabewert ist ein generischer Typ (\code{tuple<bool, string>})
+    \item Keine Abhängigkeiten zu anderen Projektklassen
+\end{itemize}
+
+\umlplaceholder{UML: Program --verwendet$\rightarrow$ Filereader --verwendet$\rightarrow$ std::ifstream (Standardbibliothek)}
+
+\subsection{Analyse GRASP: Pure Fabrication (3P)}
+
+\textbf{Klasse: \code{Logger}} (\code{header/logger.hpp})
+
+Die Klasse \code{Logger} ist ein \textbf{Pure Fabrication} -- sie repräsentiert kein Konzept aus der PIC-Hardware-Domäne, sondern wurde ausschließlich aus softwaretechnischen Gründen erstellt, um eine einheitliche Logging-Infrastruktur bereitzustellen.
+
+\textbf{Begründung des Einsatzes:} Ohne den Logger müsste jede Klasse ihre eigene Ausgabe-Logik implementieren (z.B. \code{std::cout}-Aufrufe), was zu Codeduplizierung führen würde. Der Logger bündelt die Verantwortlichkeit der Protokollierung an einer Stelle und bietet:
+
+\begin{itemize}
+    \item Konfigurierbare Log-Level (\code{INFO}, \code{ERROR}, etc.)
+    \item Benannte Logger-Instanzen (z.B. \code{"Compiler"}, \code{"PIC"})
+    \item Möglichkeit, einzelne Logger zu deaktivieren (in \code{main.cpp})
+\end{itemize}
+
+Die Klasse gehört nicht zur Domäne, ist aber essenziell für die Wartbarkeit der Software.
+
+\umlplaceholder{UML: Logger (Pure Fabrication, wird von PIC, Compiler, Arithmetic, etc. verwendet)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/11.png}
+\end{center}
+
+\subsection{DRY (2P)}
+
+\textbf{Beispiel:} Die Klasse \code{Arithmetic} (\code{header/instructionset/arithmetic.hpp}) bündelt gemeinsame Logik aller arithmetischen Instruktionen.
+
+\textbf{Vorher (duplizierter Code):} Ohne die gemeinsame Basisklasse müsste jede arithmetische Instruktion (ADDWF, SUBWF, DECF, INCF, etc.) selbst:
+
+\begin{itemize}
+    \item den Destination-Bit und die File-Adresse aus dem Opcode extrahieren
+    \item den aktuellen W- und File-Wert laden
+    \item das Ergebnis je nach Destination zurückschreiben
+    \item das Zero-Flag setzen
+\end{itemize}
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Hypothetisch OHNE DRY – Code in jeder Instruktion dupliziert:
+class ADDWF : public Instruction {
+    uint16_t execute() override {
+        uint8_t dest = (opcode >> 7) & 1;
+        uint8_t file = opcode & 0x7F;
+        uint8_t fileVal = memoryInterface->readRegister(file);
+        uint8_t wVal = W->readByte();
+        uint16_t result = wVal + fileVal;
+        if (dest == 0) W->writeByte(result);
+        else memoryInterface->writeRegister(file, result);
+        memoryInterface->writeStatusBit(Z, (result & 0xFF) == 0);
+        // ... Carry, DC etc.
+    }
+};
+\end{lstlisting}
+
+\textbf{Nachher (DRY durch Basisklasse):}
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// header/instructionset/arithmetic.hpp
+class Arithmetic : public virtual Instruction {
+    protected:
+        uint8_t destination, file, fileValue, WValue;
+        void storeResult(uint16_t result);      // Gemeinsame Logik: Ergebnis speichern
+        void loadCurrentValues();               // Gemeinsame Logik: Werte laden
+    public:
+        uint8_t getDestination();
+        uint8_t getFile();
+};
+
+// Jede Instruktion nutzt die gemeinsamen Methoden:
+uint16_t ADDWF::execute() {
+    loadCurrentValues();
+    uint16_t result = WValue + fileValue;
+    storeResult(result);
+    // Setze Flags ...
+    return 1;
+}
+\end{lstlisting}
+
+\textbf{Auswirkung:} Die gemeinsame Logik wird in der Basisklasse \code{Arithmetic} zentralisiert. Änderungen (z.B. am Speicherzugriff) müssen nur einmal vorgenommen werden, nicht in jeder der etwa 11 arithmetischen Instruktionen. Dies reduziert Fehlerquellen und verbessert die Wartbarkeit.
+
+\section{Kapitel 5: Unit Tests (8P)}
+
+\subsection{10 Unit Tests (2P)}
+
+\begin{longtable}{|p{0.05\textwidth}|p{0.26\textwidth}|p{0.18\textwidth}|p{0.41\textwidth}|}
+\hline
+\textbf{\#} & \textbf{Test} & \textbf{Datei} & \textbf{Beschreibung} \\
+\hline
+1 & \code{Bit initialisiert korrekt} & \code{test_bit.cpp} & Prüft, ob ein neu erstelltes \code{Bit}-Objekt mit \code{false} initialisiert wird. \\
+\hline
+2 & \code{Bit kann gesetzt werden (true)} & \code{test_bit.cpp} & Setzt ein Bit auf \code{true} und verifiziert den Wert. \\
+\hline
+3 & \code{Bit kann gesetzt werden (false)} & \code{test_bit.cpp} & Setzt ein Bit auf \code{false} und verifiziert, dass es \code{false} bleibt. \\
+\hline
+4 & \code{Nibble default constructor initializes to 0} & \code{test_nibble.cpp} & Prüft, ob ein Nibble (4 Bit) standardmäßig mit 0 initialisiert wird. \\
+\hline
+5 & \code{Nibble setBit and getBit} & \code{test_nibble.cpp} & Setzt einzelne Bits eines Nibbles und prüft sowohl einzelne Bits als auch den Gesamtwert (z.B. \code{0b0101}). \\
+\hline
+6 & \code{Byte default constructor} & \code{test_byte.cpp} & Prüft, ob \code{getByte()}, \code{getLowNibble()} und \code{getHighNibble()} jeweils 0 zurückgeben. \\
+\hline
+7 & \code{Byte setByte and getByte} & \code{test_byte.cpp} & Setzt \code{0xAB}, prüft ob \code{getLowNibble()} = \code{0xB} und \code{getHighNibble()} = \code{0xA}. \\
+\hline
+8 & \code{Byte setBit and getBit} & \code{test_byte.cpp} & Setzt Bits 0, 3, 4, 7 auf true und verifiziert, dass \code{getByte()} == \code{0x99} (10011001). \\
+\hline
+9 & \code{Ram reset initializes memory correctly} & \code{test_ram.cpp} & Prüft initiale Registerwerte: STATUS (0x03) hat Bits 3+4 gesetzt, TRISA (0x85)=0x1F, TRISB (0x86)=0xFF. \\
+\hline
+10 & \code{Read and write registers} & \code{test_ram.cpp} & Schreibt \code{0xAB} an Adresse \code{0x10}, liest zurück und vergleicht; testet unabhängige Register. \\
+\hline
+\end{longtable}
+
+\subsection{ATRIP: Automatic, Thorough und Professional (2P)}
+
+\subsubsection{Automatic}
+
+Alle Tests laufen vollautomatisch über das Catch2-Framework. Mit dem Befehl \code{./AllTests} werden alle Tests ausgeführt, ohne manuelle Konfiguration. Das CMake-Build-System registriert die Tests automatisch via \code{catch_discover_tests()} in der \code{CTestTestfile.cmake}, sodass auch \code{ctest} verwendet werden kann. Keine manuellen Schritte, Eingaben oder Inspektionen sind nötig -- jeder Test besteht oder schlägt fehl mit klarer Fehlermeldung.
+
+\subsubsection{Thorough}
+
+Die Tests decken mehrere Abstraktionsebenen ab:
+
+\begin{itemize}
+    \item \textbf{Bit-Level:} Einzelne Bits setzen/lesen
+    \item \textbf{Nibble-Level:} 4-Bit-Blöcke verwalten
+    \item \textbf{Byte-Level:} High/Low-Nibbles, Einzelbit-Zugriff, Gesamtbyte
+    \item \textbf{RAM-Level:} Initiale Werte, Lese-/Schreiboperationen, Bankwechsel
+    \item \textbf{Integrationstests:} Vollständige Programme (\code{test_validate.cpp}) mit JSON-Testdaten prüfen W-Register, Statusflags und RAM nach jeder Instruktion
+\end{itemize}
+
+\textbf{Testabdeckung:} Die Memory-Hierarchie (Bit$\rightarrow$Nibble$\rightarrow$Byte$\rightarrow$Register$\rightarrow$Ram) ist gut abgedeckt. Verbesserungspotenzial besteht bei der Abdeckung einzelner Instruktionen (z.B. dedizierte Tests für ADDWF-Carry, SUBWF-Borrow, etc.) und beim Timer/Prescaler-Subsystem.
+
+\subsubsection{Professional}
+
+Die Tests folgen guten Praktiken:
+
+\begin{itemize}
+    \item \textbf{Aussagekräftige Namen:} \code{"Bit initialisiert korrekt"}, \code{"Byte setByte and getByte"}
+    \item \textbf{SECTION-Blöcke:} Gruppieren verwandte Assertions (z.B. Nibble-Setzungen in true/false/Mischfälle)
+    \item \textbf{Unabhängigkeit:} Jeder Test erstellt seine eigenen Objekte -- kein gemeinsamer State
+    \item \textbf{Datengetriebene Tests:} \code{test_validate.cpp} verwendet \code{GENERATE(from_range(files))} für automatische Parametrisierung über alle JSON-Testdateien
+    \item \textbf{Klare REQUIRE-Assertions:} Jede Prüfung hat einen eindeutigen erwarteten Wert
+\end{itemize}
+
+\subsection{Fakes und Mocks (4P)}
+
+\emph{[Analyse und Begründung des Einsatzes von 2 Fake/Mock-Objekten; ohne Dritthersteller-Bibliothek; jeweils UML-Diagramm]}
+
+\textbf{Fake 1: FakeMemoryInterface}
+
+Um Instruktionen isoliert testen zu können, ohne das vollständige RAM-System aufzubauen, kann ein \code{FakeMemoryInterface} erstellt werden, das die gleiche Schnittstelle wie \code{MemoryInterface} bietet, aber intern eine einfache \code{std::map<uint8_t, uint8_t>} verwendet.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class FakeMemoryInterface : public MemoryInterface {
+    std::map<uint8_t, uint8_t> fakeMemory;
+public:
+    uint8_t readRegister(uint8_t addr) override { return fakeMemory[addr]; }
+    void writeRegister(uint8_t addr, uint8_t val) override { fakeMemory[addr] = val; }
+    // Statusbits als einfache Variablen
+};
+\end{lstlisting}
+
+\textbf{Begründung:} Ermöglicht das Testen einzelner Instruktionen ohne Seiteneffekte auf echten RAM. Der Fake vereinfacht die Initialisierung und erlaubt exakte Kontrolle über jeden Registerwert.
+
+\umlplaceholder{UML: IMemoryInterface $\triangleleft$-- FakeMemoryInterface | IMemoryInterface $\triangleleft$-- MemoryInterface | Instruction $\rightarrow$ IMemoryInterface}
+
+\textbf{Fake 2: FakeProgram}
+
+Für Tests, die die \code{PIC::tryStep()}-Logik prüfen, kann ein \code{FakeProgram} verwendet werden, das fest vorgegebene Instruktionen zurückgibt, ohne eine .LST-Datei parsen zu müssen.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+class FakeProgram {
+    std::vector<std::unique_ptr<Instruction>> instructions;
+public:
+    void addInstruction(std::unique_ptr<Instruction> instr) {
+        instructions.push_back(std::move(instr));
+    }
+    Instruction& getInstructionAt(uint16_t idx) {
+        return *instructions.at(idx);
+    }
+    uint16_t getProgramLength() { return instructions.size(); }
+};
+\end{lstlisting}
+
+\textbf{Begründung:} Macht Tests unabhängig vom Dateisystem und vom Compiler. Die Testdaten werden direkt im Test definiert, was die Tests schneller und deterministischer macht.
+
+\umlplaceholder{UML: FakeProgram (gleiche Schnittstelle wie Program) | PIC $\rightarrow$ Program (austauschbar durch FakeProgram)}
+
+\section{Kapitel 6: Domain Driven Design (8P)}
+
+\subsection{Ubiquitous Language (2P)}
+
+\begin{longtable}{|p{0.2\textwidth}|p{0.34\textwidth}|p{0.36\textwidth}|}
+\hline
+\textbf{Bezeichnung} & \textbf{Bedeutung} & \textbf{Begründung} \\
+\hline
+\code{Register} & 8-Bit-Speicherzelle im RAM des PIC-Mikrocontrollers & Zentraler Begriff der PIC-Hardware; wird in Datenblatt, Code und Kommunikation einheitlich verwendet. \\
+\hline
+\code{W} (Working Register) & Der Akkumulator-Register des PIC, über den alle arithmetischen Operationen laufen & Standardbezeichnung in der PIC-Architektur; im Code als \code{Register W} in der PIC-Klasse modelliert. \\
+\hline
+\code{Stack} & 8-Level-Hardware-Stack für Rücksprungadressen bei CALL/RETURN & Direkt aus der PIC-Hardware übernommen; gleichnamig im Code als Klasse \code{Stack}. \\
+\hline
+\code{Prescaler} & Vorteilerzähler, der die Eingangsfrequenz für Timer0 oder Watchdog herunterteilt & PIC-spezifischer Fachbegriff; im Code 1:1 als Klasse \code{Prescaler} mit \code{TMR0}/\code{WDT} Source modelliert. \\
+\hline
+\end{longtable}
+
+\subsection{Repositories (1,5P)}
+
+Die Applikation enthält \textbf{kein Repository} im DDD-Sinne. Begründung:
+
+Ein Repository dient dem persistenten Speichern und Abrufen von Domain-Objekten (z.B. aus einer Datenbank). PICasso ist ein Echtzeit-Simulator, der den Zustand des Mikrocontrollers vollständig im Arbeitsspeicher hält. Es gibt keine Persistenzschicht: Programme werden bei jedem Start neu aus \code{.LST}-Dateien geladen, und der Simulationszustand wird nicht gespeichert. Die Domäne eines Hardware-Simulators erfordert keinen dauerhaften Speicher für Domain-Objekte -- der Zustand existiert nur während der Laufzeit, genau wie bei echter Hardware.
+
+\subsection{Aggregates (1,5P)}
+
+\textbf{Aggregate: \code{MemoryInterface}} als Aggregate Root über \code{Ram} und \code{Stack}.
+
+\code{MemoryInterface} bildet eine transaktionale Grenze um den gesamten Speicherzustand: Es enthält \code{Ram} (2 Bänke $\times$ 80 Register) und \code{Stack} (8-Level). Alle Zugriffe auf den Speicher laufen über \code{MemoryInterface} -- direkter Zugriff auf \code{Ram} oder \code{Stack} von außen ist nicht vorgesehen. Dadurch stellt \code{MemoryInterface} die Konsistenz des Speicherzustands sicher (z.B. Bank-Switching, Registerspiegelung, Program Counter Synchronisation).
+
+\umlplaceholder{UML: MemoryInterface (Aggregate Root) $\blacklozenge$-- Ram, $\blacklozenge$-- Stack}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/14.png}
+\end{center}
+
+\subsection{Entities (1,5P)}
+
+\textbf{Entity: \code{PIC}}
+
+Die \code{PIC}-Klasse repräsentiert eine konkrete Instanz eines PIC-Mikrocontrollers mit eigenem Zustand (RAM-Inhalt, W-Register-Wert, Program Counter, Simulationszeit). Zwei PIC-Instanzen mit identischem Aufbau unterscheiden sich durch ihren Zustand -- sie haben eine \textbf{Identität}, die über ihren Lebenszyklus bestehen bleibt. Der PIC durchläuft verschiedene Zustände (Power-On-Reset, laufende Simulation, Halt), behält aber seine Identität.
+
+\subsection{Value Objects (1,5P)}
+
+\textbf{Value Object: \code{Bit}} (\code{header/memory/bit.hpp})
+
+Die Klasse \code{Bit} ist ein klassisches Value Object:
+
+\begin{itemize}
+    \item \textbf{Immutability-Tendenz:} Ein Bit hat nur einen Wert (\code{true}/\code{false}), der seinen gesamten Zustand definiert.
+    \item \textbf{Keine Identität:} Zwei Bits mit dem Wert \code{true} sind austauschbar -- es gibt keinen Grund, sie zu unterscheiden.
+    \item \textbf{Gleichheit durch Wert:} Bits werden anhand ihres Wertes verglichen, nicht per Referenz.
+\end{itemize}
+
+Ebenso sind \code{Nibble}, \code{Byte} und \code{Register} Value Objects, da sie ausschließlich durch ihren gespeicherten Wert definiert werden.
+
+\section{Kapitel 7: Refactoring (8P)}
+
+\subsection{Code Smells (2P)}
+
+\subsubsection{Code Smell 1: Large Class (God Object)}
+
+Die Klasse \code{PIC} hat zu viele Verantwortlichkeiten (siehe SRP-Analyse). Sie enthält 15+ öffentliche Methoden, verwaltet 8 Felder unterschiedlicher Natur (Hardwarekomponenten, Mutex, Logger, Timing) und ist der zentrale Anlaufpunkt für fast alle Operationen.
+
+\textbf{Lösungsweg:} Extract Class -- die Debugging-/Snapshot-Methoden in eine separate \code{PICDebugInterface}-Klasse auslagern:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Vorher: alles in PIC
+class PIC {
+    void getSnapshot(PICSnapshot& snapshot);
+    bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
+    bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
+    bool tryStep(std::string* err);
+    // ... 10+ weitere Methoden
+};
+
+// Nachher: aufgeteilt
+class PICDebugInterface {
+    PIC& pic;
+    mutable std::mutex executionMutex;
+public:
+    void getSnapshot(PICSnapshot& snapshot);
+    bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
+    bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
+};
+\end{lstlisting}
+
+\subsubsection{Code Smell 2: Long Method / Switch Statement}
+
+Die Methode \code{Compiler::getInstruction()} enthält eine lange Switch-Kaskade mit etwa 35+ Cases über mehrere Bitmask-Levels. Dies ist ein typischer \enquote{Long Method}-Smell kombiniert mit einem \enquote{Switch Statement}-Smell.
+
+\textbf{Lösungsweg:} Replace Conditional with Polymorphism / Registry-Pattern:
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Vorher: Lange Switch-Kette in getInstruction()
+switch(instruction) {
+    case 0x0064: return std::make_unique<CLRWDT>(instruction);
+    case 0x0009: return std::make_unique<RETFIE>(instruction);
+    // ... ~35 Cases über 4 Switch-Blöcke
+}
+
+// Nachher: Factory-Registry
+class InstructionRegistry {
+    std::vector<std::pair<uint16_t, uint16_t, Factory>> entries;
+public:
+    void registerInstruction(uint16_t mask, uint16_t pattern, Factory f);
+    std::unique_ptr<Instruction> create(uint16_t opcode);
+};
+\end{lstlisting}
+
+\subsection{2 Refactorings (6P)}
+
+\subsubsection{Refactoring 1: Extract Class}
+
+\textbf{Beschreibung:} Die Snapshot- und Debug-Methoden der \code{PIC}-Klasse werden in eine eigene \code{PICDebugInterface}-Klasse extrahiert.
+
+\textbf{Begründung:} Die PIC-Klasse hat zu viele Verantwortlichkeiten (God Object). Die Debug-Methoden (\code{tryWriteRegister}, \code{tryToggleBit}, \code{getSnapshot}) gehören nicht zur Kernaufgabe der Simulation, sondern sind eine Schnittstelle für die UI.
+
+\umlplaceholder{UML vorher: PIC (mit allen 15+ Methoden)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/51.png}
+\end{center}
+
+\umlplaceholder{UML nachher: PIC (nur Simulation) + PICDebugInterface (UI-Schnittstelle, hält Referenz auf PIC)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/52.png}
+\end{center}
+
+\subsubsection{Refactoring 2: Replace Static with Dependency Injection}
+
+\textbf{Beschreibung:} Die statischen Felder \code{Instruction::memoryInterface} und \code{Instruction::W} werden durch Konstruktor-Injection ersetzt.
+
+\textbf{Begründung:} Statische Felder erzeugen eine versteckte globale Abhängigkeit. Dies verhindert isoliertes Testen (man kann kein Mock-MemoryInterface injizieren) und macht die Instanziierung mehrerer PIC-Instanzen unmöglich.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Vorher (statische Felder):
+class Instruction {
+    static std::shared_ptr<MemoryInterface> memoryInterface;
+    static std::shared_ptr<Register> W;
+};
+// In PIC::PIC(): Instruction::memoryInterface = memoryInterface;
+
+// Nachher (Dependency Injection):
+class Instruction {
+    protected:
+        std::shared_ptr<MemoryInterface> memoryInterface;
+        std::shared_ptr<Register> W;
+    public:
+        Instruction(std::shared_ptr<MemoryInterface> mem, std::shared_ptr<Register> w)
+            : memoryInterface(mem), W(w) {}
+};
+// In Compiler: Jede Instruktion erhält mem und W als Parameter
+\end{lstlisting}
+
+\umlplaceholder{UML vorher: Instruction --static$\rightarrow$ MemoryInterface (globale Kopplung)}
+
+\umlplaceholder{UML nachher: Instruction --ctor inject$\rightarrow$ MemoryInterface (lokale, testbare Kopplung)}
+
+\section{Kapitel 8: Entwurfsmuster (8P)}
+
+\subsection{Entwurfsmuster: Composite Pattern (4P)}
+
+\textbf{Einsatz:} Die Memory-Hierarchie \code{Bit -> Nibble -> Byte -> Register} implementiert ein Composite Pattern, bei dem komplexere Speichereinheiten aus einfacheren zusammengesetzt werden.
+
+\textbf{Beschreibung:}
+
+\begin{itemize}
+    \item \code{Bit} -- speichert einen einzelnen boolschen Wert
+    \item \code{Nibble} -- besteht aus einem Array von 4 \code{Bit}-Objekten
+    \item \code{Byte} -- besteht aus 2 \code{Nibble}-Objekten (High + Low)
+    \item \code{Register} -- besteht aus 1 \code{Byte}-Objekt
+\end{itemize}
+
+Jede Ebene bietet Zugriffsmethoden auf ihrer Abstraktionsebene (\code{getBit()}, \code{getNibble()}, \code{getByte()}) und delegiert bei Bedarf an die darunterliegende Schicht. Ein \code{Byte} kann sowohl als Ganzes (\code{setByte(0xAB)}) als auch auf Nibble- oder Bitebene manipuliert werden.
+
+\textbf{Begründung:} Die PIC-Hardware operiert auf verschiedenen Granularitätsebenen -- Einzelbits (Status-Flags), Nibbles (BCD-Operationen), Bytes (Registerwerte). Das Composite Pattern erlaubt einheitlichen Zugriff auf allen Ebenen, ohne die Implementierungsdetails zu verletzen.
+
+\umlplaceholder{UML: Register $\blacklozenge$-- Byte $\blacklozenge$-- Nibble[2] $\blacklozenge$-- Bit[4]}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/18.png}
+\end{center}
+
+\subsection{Entwurfsmuster: Strategy Pattern / Template Method (4P)}
+
+\textbf{Einsatz:} Die \code{Instruction}-Hierarchie implementiert das Strategy Pattern (bzw. Template Method Pattern) für die Ausführung verschiedener PIC-Instruktionen.
+
+\textbf{Beschreibung:}
+
+Die abstrakte Basisklasse \code{Instruction} definiert die Methode \code{virtual uint16_t execute() = 0}. Jede konkrete Instruktion (ADDWF, SUBWF, GOTO, CALL, BCF, BSF, etc.) implementiert ihren eigenen Algorithmus in \code{execute()}. Die \code{ALU} nutzt die Basisklasse als Schnittstelle und kann jede Instruktion polymorph ausführen, ohne den konkreten Typ zu kennen.
+
+\begin{lstlisting}[style=codeblock,language=C++]
+// Strategy-Interface:
+class Instruction {
+    virtual uint16_t execute() = 0;
+};
+
+// Konkrete Strategien:
+class ADDWF : public Arithmetic { uint16_t execute() override { /* Addition */ } };
+class GOTO  : public Jump       { uint16_t execute() override { /* Sprung */ } };
+class BCF   : public Bitwise    { uint16_t execute() override { /* Bit Clear */ } };
+
+// Context (ALU):
+class ALU {
+    uint16_t executeInstruction(Instruction& instr) {
+        return instr.execute();  // polymorphe Ausführung
+    }
+};
+\end{lstlisting}
+
+\textbf{Begründung:} Der PIC hat 35+ unterschiedliche Instruktionen, die alle denselben Lebenszyklus durchlaufen (Dekodierung $\rightarrow$ Ausführung $\rightarrow$ Zyklenanzahl), aber völlig unterschiedliche Algorithmen haben. Das Strategy Pattern ermöglicht das Hinzufügen neuer Instruktionen durch Erstellung neuer Klassen, ohne bestehenden Code zu ändern.
+
+\umlplaceholder{UML: ALU $\rightarrow$ Instruction (abstract) $\triangleleft$-- Arithmetic $\triangleleft$-- \{ADDWF, SUBWF, DECF, ...\} $\triangleleft$-- Bitwise $\triangleleft$-- \{BCF, BSF, BTFSC, BTFSS\} $\triangleleft$-- Jump $\triangleleft$-- \{CALL, GOTO\} $\triangleleft$-- Literal $\triangleleft$-- \{MOVLW, ADDLW, ...\} $\triangleleft$-- NOP, SLEEP, RETURN, ...}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/19.png}
+\end{center}
+
+\end{document}
