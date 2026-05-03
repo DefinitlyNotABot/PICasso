@@ -1,0 +1,102 @@
+\chapter{Unit Tests}
+
+\section{10 Unit Tests}
+
+\begin{longtable}{|p{0.05\textwidth}|p{0.26\textwidth}|p{0.18\textwidth}|p{0.41\textwidth}|}
+\hline
+\textbf{\#} & \textbf{Test} & \textbf{Datei} & \textbf{Beschreibung} \\
+\hline
+1 & \code{Bit initialisiert korrekt} & \code{test_bit.cpp} & Prüft, ob ein neu erstelltes \code{Bit}-Objekt mit \code{false} initialisiert wird. \\
+\hline
+2 & \code{Bit kann gesetzt werden (true)} & \code{test_bit.cpp} & Setzt ein Bit auf \code{true} und verifiziert den Wert. \\
+\hline
+3 & \code{Bit kann gesetzt werden (false)} & \code{test_bit.cpp} & Setzt ein Bit auf \code{false} und verifiziert, dass es \code{false} bleibt. \\
+\hline
+4 & \code{Nibble default constructor initializes to 0} & \code{test_nibble.cpp} & Prüft, ob ein Nibble (4 Bit) standardmäßig mit 0 initialisiert wird. \\
+\hline
+5 & \code{Nibble setBit and getBit} & \code{test_nibble.cpp} & Setzt einzelne Bits eines Nibbles und prüft sowohl einzelne Bits als auch den Gesamtwert (z.B. \code{0b0101}). \\
+\hline
+6 & \code{Byte default constructor} & \code{test_byte.cpp} & Prüft, ob \code{getByte()}, \code{getLowNibble()} und \code{getHighNibble()} jeweils 0 zurückgeben. \\
+\hline
+7 & \code{Byte setByte and getByte} & \code{test_byte.cpp} & Setzt \code{0xAB}, prüft ob \code{getLowNibble()} = \code{0xB} und \code{getHighNibble()} = \code{0xA}. \\
+\hline
+8 & \code{Byte setBit and getBit} & \code{test_byte.cpp} & Setzt Bits 0, 3, 4, 7 auf true und verifiziert, dass \code{getByte()} == \code{0x99} (10011001). \\
+\hline
+9 & \code{Ram reset initializes memory correctly} & \code{test_ram.cpp} & Prüft initiale Registerwerte: STATUS (0x03) hat Bits 3+4 gesetzt, TRISA (0x85)=0x1F, TRISB (0x86)=0xFF. \\
+\hline
+10 & \code{Read and write registers} & \code{test_ram.cpp} & Schreibt \code{0xAB} an Adresse \code{0x10}, liest zurück und vergleicht; testet unabhängige Register. \\
+\hline
+\end{longtable}
+
+\section{ATRIP: Automatic, Thorough und Professional}
+
+\subsection{Automatic}
+
+Alle Tests laufen vollautomatisch über das Catch2-Framework. Mit dem Befehl \code{./build/AllTests} im project root werden alle Tests ausgeführt, ohne manuelle Konfiguration. Das CMake-Build-System registriert die Tests automatisch via \code{catch_discover_tests()} in der \code{CTestTestfile.cmake}, sodass auch \code{ctest} verwendet werden kann. Keine manuellen Schritte, Eingaben oder Inspektionen sind nötig -- jeder Test besteht oder schlägt fehl mit klarer Fehlermeldung.
+
+\subsection{Thorough}
+
+Die Tests decken mehrere Abstraktionsebenen ab:
+
+\begin{itemize}
+    \item \textbf{Bit-Level:} Einzelne Bits setzen/lesen
+    \item \textbf{Nibble-Level:} 4-Bit-Blöcke verwalten
+    \item \textbf{Byte-Level:} High/Low-Nibbles, Einzelbit-Zugriff, Gesamtbyte
+    \item \textbf{RAM-Level:} Initiale Werte, Lese-/Schreiboperationen, Bankwechsel
+    \item \textbf{Integrationstests:} Vollständige Programme (\code{test_validate.cpp}) mit JSON-Testdaten prüfen W-Register, Statusflags und RAM nach jeder Instruktion
+\end{itemize}
+
+\textbf{Testabdeckung:} Die Memory-Hierarchie (Bit$\rightarrow$Nibble$\rightarrow$Byte$\rightarrow$Register$\rightarrow$Ram) ist gut abgedeckt. Verbesserungspotenzial besteht bei der Abdeckung einzelner Instruktionen (z.B. dedizierte Tests für ADDWF-Carry, SUBWF-Borrow, etc.) und beim Timer/Prescaler-Subsystem.
+
+\subsection{Professional}
+
+Die Tests folgen guten Praktiken:
+
+\begin{itemize}
+    \item \textbf{Aussagekräftige Namen:} \code{"Bit initialisiert korrekt"}, \code{"Byte setByte and getByte"}
+    \item \textbf{SECTION-Blöcke:} Gruppieren verwandte Assertions (z.B. Nibble-Setzungen in true/false/Mischfälle)
+    \item \textbf{Unabhängigkeit:} Jeder Test erstellt seine eigenen Objekte -- kein gemeinsamer State
+    \item \textbf{Datengetriebene Tests:} \code{test_validate.cpp} verwendet \code{GENERATE(from_range(files))} für automatische Parametrisierung über alle JSON-Testdateien
+    \item \textbf{Klare REQUIRE-Assertions:} Jede Prüfung hat einen eindeutigen erwarteten Wert
+\end{itemize}
+
+\section{Fakes und Mocks}
+
+\textbf{Fake 1: FakeMemoryInterface}
+
+Um Instruktionen isoliert testen zu können, ohne das vollständige RAM-System aufzubauen, kann ein \code{FakeMemoryInterface} erstellt werden, das die gleiche Schnittstelle wie \code{MemoryInterface} bietet, aber intern eine einfache \code{std::map<uint8_t, uint8_t>} verwendet.
+
+\begin{lstlisting}[style=codeblock,language=picassocpp]
+class FakeMemoryInterface : public MemoryInterface {
+    std::map<uint8_t, uint8_t> fakeMemory;
+public:
+    uint8_t readRegister(uint8_t addr) override { return fakeMemory[addr]; }
+    void writeRegister(uint8_t addr, uint8_t val) override { fakeMemory[addr] = val; }
+    // Statusbits als einfache Variablen
+};
+\end{lstlisting}
+
+\textbf{Begründung:} Ermöglicht das Testen einzelner Instruktionen ohne Seiteneffekte auf echten RAM. Der Fake vereinfacht die Initialisierung und erlaubt exakte Kontrolle über jeden Registerwert.
+
+\umlplaceholder{UML: IMemoryInterface $\triangleleft$-- FakeMemoryInterface | IMemoryInterface $\triangleleft$-- MemoryInterface | Instruction $\rightarrow$ IMemoryInterface}
+
+\textbf{Fake 2: FakeProgram}
+
+Für Tests, die die \code{PIC::tryStep()}-Logik prüfen, kann ein \code{FakeProgram} verwendet werden, das fest vorgegebene Instruktionen zurückgibt, ohne eine .LST-Datei parsen zu müssen.
+
+\begin{lstlisting}[style=codeblock,language=picassocpp]
+class FakeProgram {
+    std::vector<std::unique_ptr<Instruction>> instructions;
+public:
+    void addInstruction(std::unique_ptr<Instruction> instr) {
+        instructions.push_back(std::move(instr));
+    }
+    Instruction& getInstructionAt(uint16_t idx) {
+        return *instructions.at(idx);
+    }
+    uint16_t getProgramLength() { return instructions.size(); }
+};
+\end{lstlisting}
+
+\textbf{Begründung:} Macht Tests unabhängig vom Dateisystem und vom Compiler. Die Testdaten werden direkt im Test definiert, was die Tests schneller und deterministischer macht.
+

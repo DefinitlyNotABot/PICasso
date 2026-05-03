@@ -1,0 +1,104 @@
+\chapter{Refactoring}
+
+\section{Code Smells}
+
+\subsection{Code Smell 1: Large Class (God Object)}
+
+Die Klasse \code{PIC} hat zu viele Verantwortlichkeiten (siehe SRP-Analyse). Sie enthält 15+ öffentliche Methoden, verwaltet 8 Felder unterschiedlicher Natur (Hardwarekomponenten, Mutex, Logger, Timing) und ist der zentrale Anlaufpunkt für fast alle Operationen.
+
+\textbf{Lösungsweg:} Extract Class -- die Debugging-/Snapshot-Methoden in eine separate \code{PICDebugInterface}-Klasse auslagern:
+
+\begin{lstlisting}[style=codeblock,language=picassocpp]
+// Vorher: alles in PIC
+class PIC {
+    void getSnapshot(PICSnapshot& snapshot);
+    bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
+    bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
+    bool tryStep(std::string* err);
+    // ... 10+ weitere Methoden
+};
+
+// Nachher: aufgeteilt
+class PICDebugInterface {
+    PIC& pic;
+    mutable std::mutex executionMutex;
+public:
+    void getSnapshot(PICSnapshot& snapshot);
+    bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
+    bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
+};
+\end{lstlisting}
+
+\subsection{Code Smell 2: Long Method / Switch Statement}
+
+Die Methode \code{Compiler::getInstruction()} enthält eine lange Switch-Kaskade mit etwa 35+ Cases über mehrere Bitmask-Levels. Dies ist ein typischer \enquote{Long Method}-Smell kombiniert mit einem \enquote{Switch Statement}-Smell.
+
+\textbf{Lösungsweg:} Replace Conditional with Polymorphism / Registry-Pattern:
+
+\begin{lstlisting}[style=codeblock,language=picassocpp]
+// Vorher: Lange Switch-Kette in getInstruction()
+switch(instruction) {
+    case 0x0064: return std::make_unique<CLRWDT>(instruction);
+    case 0x0009: return std::make_unique<RETFIE>(instruction);
+    // ... ~35 Cases über 4 Switch-Blöcke
+}
+
+// Nachher: Factory-Registry
+class InstructionRegistry {
+    std::vector<std::pair<uint16_t, uint16_t, Factory>> entries;
+public:
+    void registerInstruction(uint16_t mask, uint16_t pattern, Factory f);
+    std::unique_ptr<Instruction> create(uint16_t opcode);
+};
+\end{lstlisting}
+
+\section{2 Refactorings}
+
+\subsection{Refactoring 1: Extract Class}
+
+\textbf{Beschreibung:} Die Snapshot- und Debug-Methoden der \code{PIC}-Klasse werden in eine eigene \code{PICDebugInterface}-Klasse extrahiert.
+
+\textbf{Begründung:} Die PIC-Klasse hat zu viele Verantwortlichkeiten (God Object). Die Debug-Methoden (\code{tryWriteRegister}, \code{tryToggleBit}, \code{getSnapshot}) gehören nicht zur Kernaufgabe der Simulation, sondern sind eine Schnittstelle für die UI.
+
+\umlplaceholder{UML vorher: PIC (mit allen 15+ Methoden)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/51.png}
+\end{center}
+
+\umlplaceholder{UML nachher: PIC (nur Simulation) + PICDebugInterface (UI-Schnittstelle, hält Referenz auf PIC)}
+
+\begin{center}
+    \includegraphics[width=0.9\textwidth]{UML/52.png}
+\end{center}
+
+\subsection{Refactoring 2: Replace Static with Dependency Injection}
+
+\textbf{Beschreibung:} Die statischen Felder \code{Instruction::memoryInterface} und \code{Instruction::W} werden durch Konstruktor-Injection ersetzt.
+
+\textbf{Begründung:} Statische Felder erzeugen eine versteckte globale Abhängigkeit. Dies verhindert isoliertes Testen (man kann kein Mock-MemoryInterface injizieren) und macht die Instanziierung mehrerer PIC-Instanzen unmöglich.
+
+\begin{lstlisting}[style=codeblock,language=picassocpp]
+// Vorher (statische Felder):
+class Instruction {
+    static std::shared_ptr<MemoryInterface> memoryInterface;
+    static std::shared_ptr<Register> W;
+};
+// In PIC::PIC(): Instruction::memoryInterface = memoryInterface;
+
+// Nachher (Dependency Injection):
+class Instruction {
+    protected:
+        std::shared_ptr<MemoryInterface> memoryInterface;
+        std::shared_ptr<Register> W;
+    public:
+        Instruction(std::shared_ptr<MemoryInterface> mem, std::shared_ptr<Register> w)
+            : memoryInterface(mem), W(w) {}
+};
+// In Compiler: Jede Instruktion erhält mem und W als Parameter
+\end{lstlisting}
+
+\umlplaceholder{UML vorher: Instruction --static$\rightarrow$ MemoryInterface (globale Kopplung)}
+
+\umlplaceholder{UML nachher: Instruction --ctor inject$\rightarrow$ MemoryInterface (lokale, testbare Kopplung)}
+

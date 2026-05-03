@@ -1,0 +1,78 @@
+\chapter{Einführung}
+
+\section{Übersicht über die Applikation}
+
+\textbf{PICasso} ist ein Simulator für PIC-Midrange-Mikrocontroller, geschrieben in C++17.
+Die Applikation liest assemblierte PIC-Programme im \code{.LST}-Format ein und führt diese Instruktion für Instruktion aus.
+Dabei werden alle wesentlichen Hardwarekomponenten des PIC simuliert:
+ein 2-Bank-RAM mit Registerspiegelung, ein 8-Bit-W-Akkumulator, ein 8-Level-Hardware-Stack, ein Timer/Prescaler-Subsystem
+sowie die vollständige Ausführung aller 35 PIC-Midrange-Instruktionen.
+Die Applikation bietet eine interaktive Terminal-Oberfläche (ncurses), über die der Benutzer Programme laden,
+schrittweise oder im Dauerlauf ausführen, RAM-Inhalte inspizieren und modifizieren sowie einzelne Bits umschalten kann
+Die Simulation läuft in einem separaten Thread, während die UI im Hauptthread rendert -- synchronisiert über atomare Flags und Mutexe.
+
+\textbf{Zweck:} PICasso löst das Problem, PIC-Assemblerprogramme ohne physische Hardware testen und debuggen zu können.
+Es dient als Lern- und Entwicklungswerkzeug für eingebettete Systeme.
+
+\section{Starten der Applikation}
+
+\textbf{Voraussetzungen:}
+
+\begin{itemize}
+    \item C++17-kompatibler Compiler (z.B. g++ $\geq$ 9)
+    \item CMake $\geq$ 3.14
+    \item ncurses-Bibliothek (\code{libncurses-dev} unter Linux)
+\end{itemize}
+
+\textbf{Schritt-für-Schritt-Anleitung:}
+
+\begin{lstlisting}[style=codeblock,language=bash]
+# 1. Repository klonen / Projektverzeichnis wechseln
+git clone https://github.com/DefinitlyNotABot/PICasso.git
+cd PICasso
+
+# 2. Build-Verzeichnis erstellen und CMake konfigurieren
+mkdir -p build && cd build
+cmake ..
+
+# 3. Projekt kompilieren
+make
+
+# 4. Simulator starten
+./PICasso
+
+# 5. Tests ausführen (optional)
+cd ..
+./build/AllTests
+\end{lstlisting}
+
+Nach dem Start öffnet sich die ncurses-Oberfläche.
+Über den \emph{Load}-Button kann eine \code{.LST}-Datei aus dem \code{progs/}-Verzeichnis geladen werden.
+Anschließend kann das Programm mit \emph{Step}, \emph{Run} (Dauerlauf) oder \emph{Dash} (Schnelllauf) ausgeführt werden.
+
+\section{Technischer Überblick}
+
+\begin{longtable}{|p{0.18\textwidth}|p{0.22\textwidth}|p{0.5\textwidth}|}
+\hline
+\textbf{Technologie} & \textbf{Beschreibung} & \textbf{Begründung} \\
+\hline
+C++17 & Primäre Programmiersprache & Bietet hardwarenahe Kontrolle, geeignet für Simulator-Entwicklung;
+unterstützt \code{std::optional}, \code{std::shared_ptr}, \code{std::filesystem} und strukturierte Bindings. \\
+\hline
+CMake & Build-System & Plattformunabhängiges Build-System;
+ermöglicht automatisches Herunterladen von Abhängigkeiten (Catch2) via \code{FetchContent}. \\
+\hline
+ncurses & Terminal-UI-Bibliothek & Ermöglicht eine interaktive TUI ohne grafische Abhängigkeiten;
+ideal für ein konsolenbasiertes Debugging-Tool. Unterstützt Farben, Mauseingabe und Fenstermanagement. \\
+\hline
+Catch2 & Unit-Test-Framework & Header-only-Framework mit BDD-Stil (\code{TEST_CASE}/\code{SECTION});
+automatische Testregistrierung und Generatoren (\code{GENERATE}). \\
+\hline
+nlohmann/json & JSON-Parsing für Testdateien & Erlaubt deklarative Testspezifikation in JSON-Dateien;
+einfache Integration als Header-only-Bibliothek. \\
+\hline
+\code{std::thread / std::mutex / std::atomic} & Multithreading & Simulation und UI laufen parallel;
+atomare Flags steuern den Simulationszustand. \\
+\hline
+\end{longtable}
+
