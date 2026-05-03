@@ -1,6 +1,6 @@
 \chapter{Entwurfsmuster}
 
-\section{Entwurfsmuster: Composite Pattern}
+\section{Entwurfsmuster: Kompositum Pattern}
 
 \textbf{Einsatz:} Die Memory-Hierarchie \code{Bit -> Nibble -> Byte -> Register} implementiert ein Composite Pattern, bei dem komplexere Speichereinheiten aus einfacheren zusammengesetzt werden.
 
@@ -17,13 +17,12 @@ Jede Ebene bietet Zugriffsmethoden auf ihrer Abstraktionsebene (\code{getBit()},
 
 \textbf{Begründung:} Die PIC-Hardware operiert auf verschiedenen Granularitätsebenen -- Einzelbits (Status-Flags), Nibbles (BCD-Operationen), Bytes (Registerwerte). Das Composite Pattern erlaubt einheitlichen Zugriff auf allen Ebenen, ohne die Implementierungsdetails zu verletzen.
 
-\umlplaceholder{UML: Register $\blacklozenge$-- Byte $\blacklozenge$-- Nibble[2] $\blacklozenge$-- Bit[4]}
 
 \begin{center}
-    \includegraphics[width=0.9\textwidth]{UML/18.png}
+    \includegraphics[width=0.5\textwidth]{UML/18.png}
 \end{center}
 
-\section{Entwurfsmuster: Strategy Pattern / Template Method}
+\section{Entwurfsmuster: Strategy Pattern}
 
 \textbf{Einsatz:} Die \code{Instruction}-Hierarchie implementiert das Strategy Pattern (bzw. Template Method Pattern) für die Ausführung verschiedener PIC-Instruktionen.
 
@@ -52,9 +51,8 @@ class ALU {
 
 \textbf{Begründung:} Der PIC hat 35+ unterschiedliche Instruktionen, die alle denselben Lebenszyklus durchlaufen (Dekodierung $\rightarrow$ Ausführung $\rightarrow$ Zyklenanzahl), aber völlig unterschiedliche Algorithmen haben. Das Strategy Pattern ermöglicht das Hinzufügen neuer Instruktionen durch Erstellung neuer Klassen, ohne bestehenden Code zu ändern.
 
-\umlplaceholder{UML: ALU $\rightarrow$ Instruction (abstract) $\triangleleft$-- Arithmetic $\triangleleft$-- \{ADDWF, SUBWF, DECF, ...\} $\triangleleft$-- Bitwise $\triangleleft$-- \{BCF, BSF, BTFSC, BTFSS\} $\triangleleft$-- Jump $\triangleleft$-- \{CALL, GOTO\} $\triangleleft$-- Literal $\triangleleft$-- \{MOVLW, ADDLW, ...\} $\triangleleft$-- NOP, SLEEP, RETURN, ...}
 
 \begin{center}
-    \includegraphics[width=0.9\textwidth]{UML/19.png}
+    \includegraphics[height=0.25\textwidth, angle=90]{UML/19.png}
 \end{center}
 
