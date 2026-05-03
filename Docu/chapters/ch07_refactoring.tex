@@ -6,11 +6,26 @@
 
 Die Klasse \code{PIC} hat zu viele Verantwortlichkeiten (siehe SRP-Analyse). Sie enthält 15+ öffentliche Methoden, verwaltet 8 Felder unterschiedlicher Natur (Hardwarekomponenten, Mutex, Logger, Timing) und ist der zentrale Anlaufpunkt für fast alle Operationen.
 
-\textbf{Lösungsweg:} Extract Class -- die Debugging-/Snapshot-Methoden in eine separate \code{PICDebugInterface}-Klasse auslagern:
+\textbf{Lösungsweg:} Die Klasse sollte aufgeteilt werden in:
+
+\begin{itemize}
+    \item \code{PICHardware} -- hält Register, RAM, Timer (Hardware-Zustand)
+    \item \code{PICSimulator} -- orchestriert Instruktionsausführung
+    \item \code{PICDebugInterface} -- bietet thread-sichere Zugriffsmethoden für die UI
+\end{itemize}
+
+Als erster Refactoring-Schritt kann die Debugging-/Snapshot-Verantwortung in eine separate
+\code{PICDebugInterface}-Klasse ausgelagert werden:
 
 \begin{lstlisting}[style=codeblock,language=picassocpp]
 // Vorher: alles in PIC
 class PIC {
+    // Hardware-Zustand
+    std::shared_ptr<ProgramCounter> pc;
+    std::shared_ptr<RAM> ram;
+    std::shared_ptr<Timer> timer;
+
+    // Simulationssteuerung
     void getSnapshot(PICSnapshot& snapshot);
     bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
     bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
@@ -18,14 +33,28 @@ class PIC {
     // ... 10+ weitere Methoden
 };
 
-// Nachher: aufgeteilt
+// Nachher: SRP-Aufteilung
+class PICHardware {
+    std::shared_ptr<ProgramCounter> pc;
+    std::shared_ptr<RAM> ram;
+    std::shared_ptr<Timer> timer;
+};
+
+class PICSimulator {
+    PICHardware& hw;
+public:
+    bool tryStep(std::string* err);
+};
+
 class PICDebugInterface {
-    PIC& pic;
+    PICHardware& hw;
+    PICSimulator& simulator;
     mutable std::mutex executionMutex;
 public:
     void getSnapshot(PICSnapshot& snapshot);
     bool tryWriteRegister(uint8_t addr, uint8_t val, std::string* err);
     bool tryToggleBit(uint8_t addr, uint8_t bit, std::string* err);
+    bool tryStep(std::string* err);
 };
 \end{lstlisting}
 
