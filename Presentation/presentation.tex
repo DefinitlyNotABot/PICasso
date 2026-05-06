@@ -266,8 +266,8 @@ class Stack {
             \textbf{Abhängigkeit korrekt von außen nach innen:}
             \begin{itemize}
                 \item \texttt{Register} (Domain) kennt nur \texttt{Byte}
-                \item \texttt{Byte} kennt nur \texttt{Nibble} und \texttt{Bit}
-                \item \texttt{Ram} hängt von \texttt{Register} ab --\\
+                \item \texttt{Byte} kennt nur \texttt{Nibble}
+                \item \texttt{Ram} hängt von \texttt{Register} ab\\
                     \texttt{Register} weiß nichts von \texttt{Ram}
             \end{itemize}
             \vspace{0.5em}
@@ -276,7 +276,7 @@ class Stack {
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
-            \includegraphics[width=0.5 \textwidth]{../Docu/UML/2.png}
+            \includegraphics[width=0.55 \textwidth]{./images/ramToBit.png}
         \end{column}
     \end{columns}
 \end{frame}
@@ -330,7 +330,7 @@ static shared_ptr<MemoryInterface> memoryInterface;
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{../Docu/UML/4.png}
+            \includegraphics[width=\textwidth]{./images/stack.png}
         \end{column}
     \end{columns}
 \end{frame}
@@ -394,7 +394,7 @@ class PIC{
         \end{column}
         \begin{column}{0.6\textwidth}
             \begin{center}
-                \includegraphics[width=1.1\textwidth]{../Docu/UML/52.png}
+                \includegraphics[width=1.1\textwidth]{./images/picNew.png}
             \end{center}
         \end{column}
     \end{columns}
