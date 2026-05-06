@@ -91,6 +91,7 @@
 % ===========================================================
 % TITELFOLIE
 % ===========================================================
+
 \begin{frame}
     \titlepage
 \end{frame}
@@ -125,7 +126,7 @@
                 \item Interaktive ncurses Terminal-UI
             \end{itemize}
         \end{column}
-        \begin{column}{0.4\textwidth}
+        \begin{column}{0.5\textwidth}
             \centering
             \includegraphics[width=\textwidth]{./images/pic2.png}
         \end{column}
@@ -143,9 +144,9 @@
     \vspace{0.5em}
     \begin{itemize}
         \item Programme schrittweise oder im Dauerlauf ausführen
-        \item RAM-Inhalte inspizieren \emph{und} zur Laufzeit modifizieren
+        \item RAM-Inhalte inspizieren und zur Laufzeit modifizieren
         \item Einzelne Bits umschalten
-        \item Simulation läuft in eigenem Thread -- UI bleibt reagierend
+        \item Simulation läuft in eigenem Thread: UI bleibt reagierend
     \end{itemize}
 \end{frame}
 
@@ -172,13 +173,11 @@
 git clone https://github.com/\
   DefinitlyNotABot/PICasso.git
 cd PICasso
-mkdir -p build && cd build
-cmake ..
-make
-./PICasso
+
+# Ausfuehren
+make run
 
 # Tests ausfuehren:
-cd ..
 ./build/AllTests
 \end{lstlisting}
         \end{column}
@@ -211,12 +210,11 @@ cd ..
             \begin{itemize}
                 \item[\textbf{1.}] \textbf{Domain/Entities} (innen):\\
                     \texttt{Bit}, \texttt{Nibble}, \texttt{Byte}, \texttt{Register},\\
-                    \texttt{Ram}, \texttt{Stack}, \texttt{MemoryInterface}
+                    \texttt{Ram}, \texttt{Stack}, \texttt{Instruction} (35+ Subklassen),\\
+                    \texttt{ALU}, \texttt{Timer}, \texttt{Prescaler}
                 \vspace{0.4em}
                 \item[\textbf{2.}] \textbf{Use Cases / Application}:\\
-                    \texttt{Instruction} (35+ Subklassen),\\
-                    \texttt{ALU}, \texttt{Compiler}, \texttt{Program},\\
-                    \texttt{Timer}, \texttt{Prescaler}, \texttt{PIC}
+                    \texttt{PIC}, \texttt{Compiler}, \texttt{Program}
                 \vspace{0.4em}
                 \item[\textbf{3.}] \textbf{Interface Adapters}:\\
                     \texttt{Filereader}, \texttt{Logger}
@@ -228,7 +226,7 @@ cd ..
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{../Docu/UML/1.png}
+            \includegraphics[width=0.9 \textwidth]{../Docu/UML/1.png}
         \end{column}
     \end{columns}
 \end{frame}
@@ -274,23 +272,24 @@ class Stack {
             \end{itemize}
             \vspace{0.5em}
             Alle Klassen innerhalb der Domain-Schicht.\\
-            \textbf{Pfeil zeigt immer nach innen} \checkmark
+            \textbf{Pfeil zeigt immer nach innen}
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
-            \includegraphics[width=\textwidth]{../Docu/UML/2.png}
+            \includegraphics[width=0.5 \textwidth]{../Docu/UML/2.png}
         \end{column}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Dependency Rule -- Negativ-Beispiel}
+\begin{frame}[fragile]{Dependency Rule -- Negativ-Beispiel}
     \begin{columns}
-        \begin{column}{0.5\textwidth}
+        \begin{column}{0.55\textwidth}
             \textbf{Problem:} \texttt{Instruction} (Application Layer) hält ein \textbf{statisches} Feld:
             \vspace{0.3em}
             \begin{center}
-                \texttt{static shared\_ptr<MemoryInterface>}\\
-                \texttt{memoryInterface}
+\begin{lstlisting}[language=picassocpp]
+static shared_ptr<MemoryInterface> memoryInterface;
+\end{lstlisting}
             \end{center}
             \vspace{0.3em}
             \begin{itemize}
@@ -340,17 +339,39 @@ class Stack {
     \begin{columns}
         \begin{column}{0.5\textwidth}
 \begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
-class PIC {
-    ALU alu;
-    Program loadedProgram;
-    Register W;
-    Timer timer;
-    shared_ptr<MemoryInterface> mem;
-    shared_ptr<Prescaler> prescaler;
-    uint64_t totalSimulatedTimeUs;
-    mutable mutex executionMutex;
-    Logger logger;
-    // 15+ oeffentliche Methoden!
+class PIC{
+    private:
+        Logger logger;
+        ALU alu;
+        Program loadedProgram;
+        Register W;
+        Timer timer;
+        Interrupts interrupts;
+        uint64_t totalSimulatedTimeUs = 0;
+        std::shared_ptr<MemoryInterface> memoryInterface;
+        std::shared_ptr<Prescaler> prescaler;
+        mutable std::mutex executionMutex;
+
+    public:
+        PIC();
+        ~PIC();
+        void loadProgram(...);
+        void reset();
+        void powerOnReset();
+        void printState();
+        void printStep(...);
+        uint8_t getProgramCounter();
+        uint8_t getStatusBit(...);
+        uint8_t getWRegister();
+        uint8_t readRegister(...);
+        void getSnapshot(...);
+        bool tryStep(...);
+        bool tryWriteRegister(...);
+        bool tryWriteRegister(...);
+        bool tryToggleBit(...);
+        bool tryToggleBit(...);
+        bool tryGetInstructionName(...);
+        uint64_t getSimulatedTimeUs();
 };
 \end{lstlisting}
         \end{column}
@@ -359,17 +380,24 @@ class PIC {
             \begin{enumerate}
                 \item Simulationsorchestrierung
                 \item Programmmanagement
-                \item Thread-sichere UI-Abfragen
-                \item Zustandsmanipulation (Debugging)
+                \item Zustandsmanipulation
                 \item Komponenteninitialisierung
             \end{enumerate}
         \end{column}
     \end{columns}
-    \vspace{0.3em}
-    \textbf{Lösung:} Aufteilung in \texttt{PICHardware}, \texttt{PICSimulator}, \texttt{PICDebugInterface}
-    \begin{center}
-        \includegraphics[height=2.2cm]{../Docu/UML/51.png}
-    \end{center}
+\end{frame}
+
+\begin{frame}{SRP -- Negativ Lösung}
+    \begin{columns}
+        \begin{column}{0.4\textwidth}
+            \textbf{Lösung:} Aufteilung in \texttt{PICHardware}, \texttt{PICSimulator}, \texttt{PICDebugInterface}
+        \end{column}
+        \begin{column}{0.6\textwidth}
+            \begin{center}
+                \includegraphics[width=1.1\textwidth]{../Docu/UML/52.png}
+            \end{center}
+        \end{column}
+    \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{OCP -- Positiv: \texttt{Instruction}-Hierarchie}
@@ -394,16 +422,20 @@ class ADDWF : public Arithmetic {
 };
 \end{lstlisting}
         \end{column}
-        \begin{column}{0.45\textwidth}
+        \end{columns}
+        \end{frame}
+
+\begin{frame}{OCP -- Positiv UML}
             \centering
-            \includegraphics[height=4.5cm, angle=90]{../Docu/UML/6.png}
-        \end{column}
-    \end{columns}
+            \includegraphics[width=\textwidth]{../Docu/UML/6.png}
+
 \end{frame}
 
 \begin{frame}[fragile]{OCP -- Negativ: \texttt{Compiler} Switch-Kaskade}
     \begin{columns}
         \begin{column}{0.55\textwidth}
+            \textbf{Problem:}\\
+            Jede neue Instruktion erfordert Änderung an \texttt{getInstruction()} -- Verstoß gegen OCP.
 \begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
 unique_ptr<Instruction>
 Compiler::getInstruction(uint16_t instr)
@@ -421,8 +453,6 @@ Compiler::getInstruction(uint16_t instr)
 \end{lstlisting}
         \end{column}
         \begin{column}{0.45\textwidth}
-            \textbf{Problem:}\\
-            Jede neue Instruktion erfordert Änderung an \texttt{getInstruction()} -- Verstoß gegen OCP.
             \vspace{0.5em}
 
             \textbf{Lösung:} Registry-Pattern
@@ -437,16 +467,17 @@ static bool registered = []() {
 \end{lstlisting}
         \end{column}
     \end{columns}
-    \begin{center}
-        \includegraphics[width=0.55\textwidth]{../Docu/UML/7.png}
-    \end{center}
 \end{frame}
 
 \begin{frame}[fragile]{DIP -- Positiv: \texttt{ALU} hängt von Abstraktion ab}
-    \textbf{Dependency Inversion Principle}: Abhängig von Abstraktionen, nicht von Details.
-    \vspace{0.5em}
-    \begin{columns}
-        \begin{column}{0.5\textwidth}
+
+    \textbf{Dependency Inversion Principle}: 
+    \newline
+    Abhängig von Abstraktionen, nicht von Details.
+    \newline
+    \newline
+    ALU hängt von \texttt{Instruction} (Abstraktion), nicht von \texttt{ADDWF}, \texttt{SUBWF} etc. ab
+        \center
 \begin{lstlisting}[language=picassocpp]
 // ALU kennt nur die Abstraktion:
 class ALU {
@@ -458,18 +489,20 @@ class ALU {
     }
 };
 \end{lstlisting}
-            \vspace{0.3em}
-            ALU hängt von \texttt{Instruction} (Abstraktion), nicht von \texttt{ADDWF}, \texttt{SUBWF} etc. \checkmark
-        \end{column}
+            
+\end{frame}
+\begin{frame}{DIP -- Negativ}
+    \begin{columns}
         \begin{column}{0.5\textwidth}
             \textbf{Negativ-Beispiel: \texttt{PIC}}\\
             \vspace{0.3em}
             Hängt direkt von konkreter \texttt{Register}-Klasse ab.
             Keine Abstraktionsebene, gegen die programmiert wird.
-            \vspace{0.5em}
+
             \centering
             \includegraphics[width=\textwidth]{../Docu/UML/9.png}
-            \vspace{0.3em}
+        \end{column}
+        \begin{column}{0.5\textwidth}
             \textbf{Lösung:} \texttt{IRegister} Interface
             \includegraphics[width=\textwidth]{../Docu/UML/91.png}
         \end{column}
@@ -515,7 +548,7 @@ class ALU {
             \begin{itemize}
                 \item Konfigurierbare Log-Level (\texttt{INFO}, \texttt{ERROR}, \ldots)
                 \item Benannte Logger-Instanzen\\
-                    (\texttt{"Compiler"}, \texttt{"PIC"}, \ldots)
+                    (\texttt{``Compiler''}, \texttt{``PIC''}, \ldots)
                 \item Einzelne Logger deaktivierbar
             \end{itemize}
             \vspace{0.3em}
@@ -555,6 +588,17 @@ uint8_t Ram::readRegister(uint8_t addr,
         \begin{column}{0.5\textwidth}
             \textbf{Nachher (DRY):}
 \begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
+void Ram::throwErrors(uint8_t address, bool bank) const
+{
+    if (isOutOfScope(address))
+        throw std::runtime_error("Address out of range");
+
+    if (!memory[bank][address])
+    {
+        throw std::runtime_error("Nullpointer access at address 0x" + std::to_string(address));
+    }
+}
+
 uint8_t Ram::readRegister(uint8_t addr) {
     throwErrors(addr);
     return memory[readBankSelectBit()]
@@ -568,7 +612,7 @@ uint8_t Ram::readRegister(uint8_t addr,
 }
 \end{lstlisting}
             \vspace{0.3em}
-            Fehlererkennung an \emph{einer} Stelle -- einfacher anpassbar.
+            Fehlererkennung an einer Stelle: einfacher anpassbar.
         \end{column}
     \end{columns}
 \end{frame}
@@ -665,6 +709,10 @@ public:
             Dateisystem und Compiler
         \end{column}
     \end{columns}
+    \vfill
+    \begin{small}
+        Nur Theoretisch, nicht Implementiert
+    \end{small}
 \end{frame}
 
 % ===========================================================
@@ -714,7 +762,7 @@ public:
     \end{columns}
 \end{frame}
 
-\begin{frame}{Entity \& Value Object}
+\begin{frame}{Entity}
     \begin{columns}
         \begin{column}{0.5\textwidth}
             \begin{block}{Entity: \texttt{PIC}}
@@ -725,9 +773,15 @@ public:
                     \item Durchläuft Zustände (Power-On-Reset, aktiv, Halt)
                 \end{itemize}
             \end{block}
-            \centering
-            \includegraphics[width=0.7\textwidth]{../Docu/UML/12.png}
         \end{column}
+        \begin{column}{0.5\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{../Docu/UML/12.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+\begin{frame}{Value Object}
+    \begin{columns}
         \begin{column}{0.5\textwidth}
             \begin{block}{Value Object: \texttt{Bit}}
                 \begin{itemize}
@@ -737,9 +791,12 @@ public:
                 \end{itemize}
                 Ebenso: \texttt{Nibble}, \texttt{Byte}, \texttt{Register}
             \end{block}
+            
             \centering
             \includegraphics[width=0.5\textwidth]{../Docu/UML/13.png}
             \vspace{0.3em}
+            \end{column}
+        \begin{column}{0.5\textwidth}
             \begin{block}{Kein Repository}
                 PICasso hält alles im RAM -- keine Persistenzschicht nötig.
             \end{block}
@@ -751,26 +808,67 @@ public:
 \section{Refactoring}
 % ===========================================================
 
-\begin{frame}{Code Smells}
+\begin{frame}{Code Smells - Large Class  / God Object}
     \begin{columns}
         \begin{column}{0.5\textwidth}
-            \begin{alertblock}{Smell 1: Large Class / God Object}
-                \texttt{PIC}-Klasse: 15+ Methoden, 8 Felder unterschiedlicher Natur.\\
-                \textbf{Lösung:} Extract Class $\Rightarrow$\\
-                \texttt{PICHardware}, \texttt{PICSimulator}, \texttt{PICDebugInterface}
-            \end{alertblock}
+            \textbf{PIC-Klasse:}
+            \newline
+            15+ Methoden, 8 Felder unterschiedlicher Natur.
+            \newline
+            \newline
+            \textbf{Lösung:} Extract Class
+            \newline
+            \texttt{PICHardware}, \texttt{PICSimulator}, \texttt{PICDebugInterface}
         \end{column}
         \begin{column}{0.5\textwidth}
-            \begin{alertblock}{Smell 2: Long Method / Switch Statement}
-                \texttt{Compiler::getInstruction()} mit ~35+ Cases über 4 Switch-Blöcke.\\
-                \textbf{Lösung:} Replace Conditional with Polymorphism / Registry-Pattern
-            \end{alertblock}
+            \centering
+            \includegraphics[width=1.2\textwidth]{../Docu/UML/52.png}
         \end{column}
     \end{columns}
-    \vspace{0.5em}
-    \centering
-    \includegraphics[width=0.65\textwidth]{../Docu/UML/52.png}
 \end{frame}
+
+\begin{frame}[fragile]{Code Smells - Long Method / Switch Statement}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \textbf{Compiler::getInstruction():}
+            Funktion mit ~35+ Cases über 4 Switch-Blöcke.\\
+
+\begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
+switch (instructionMapped)
+{
+case 0x0700: // ADDWF
+    return std::make_unique<ADDWF>(instruction);
+case 0x0500: // ANDWF        
+    return std::make_unique<ANDWF>(instruction);
+case 0x0900: // COMF        
+    return std::make_unique<COMF>(instruction);
+case 0x0300: // DECF
+    return std::make_unique<DECF>(instruction);
+case 0x0B00: // DECFSZ
+    return std::make_unique<DECFSZ>(instruction);
+case 0x0A00: // INCF
+    return std::make_unique<INCF>(instruction);
+case 0x0F00: // INCFSZ
+    return std::make_unique<INCFSZ>(instruction);
+//...
+}
+\end{lstlisting}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \textbf{Lösung:} Replace Conditional with Polymorphism / Registry-Pattern
+\begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
+// Jede Instruktion registriert sich selbst:
+static bool registered = []() {
+    registry[0x0700] = [](uint16_t op) {
+        return make_unique<ADDWF>(op);
+    };
+    return true;
+}();
+\end{lstlisting}
+        \end{column}
+    \end{columns}
+\end{frame}
+
 
 \begin{frame}[fragile]{Refactoring 1: Extract Class -- \texttt{TUI\_Renderer}}
     \textbf{Commit \texttt{2f9077e}: ,,Extracted tui renderer class''}
@@ -779,12 +877,17 @@ public:
         \begin{column}{0.5\textwidth}
             \textbf{Vorher:} Nested-Class \texttt{Renderer} direkt in \texttt{terminal\_ui.cpp}\\
             ($\sim$300 Zeilen Rendering-Code in derselben TU)
-
+        \end{column}
+        \begin{column}{0.5\textwidth}
             \centering
             \includegraphics[width=\textwidth]{../Docu/UML/20.png}
         \end{column}
-        \begin{column}{0.5\textwidth}
-            \textbf{Nachher:} Eigenständige Klasse \texttt{TUI\_Renderer}\\
+    \end{columns}
+\end{frame}
+
+
+\begin{frame}[fragile]{Refactoring 1: Extract Class -- \texttt{TUI\_Renderer}}
+        \textbf{Nachher:} Eigenständige Klasse \texttt{TUI\_Renderer}\\
             in \texttt{tui\_renderer.hpp / .cpp}
 \begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
 class TerminalUI {
@@ -795,15 +898,14 @@ private:
 };
 \end{lstlisting}
             \centering
-            \includegraphics[height=3cm, angle=90]{../Docu/UML/21.png}
-        \end{column}
-    \end{columns}
+            \includegraphics[width=\textwidth]{../Docu/UML/21.png}
+
     \vspace{0.2em}
     \textbf{Ergebnis:} Jede Klasse hat genau eine Aufgabe. \texttt{TUI\_Renderer} ist separat testbar und austauschbar.
 \end{frame}
 
 \begin{frame}[fragile]{Refactoring 2: Replace Conditional with Polymorphism}
-    \textbf{Commit \texttt{170060b}: ,,Basic run loop''}
+    \textbf{Commit \texttt{170060b}: ``Basic run loop''}
     \vspace{0.3em}
     \begin{columns}
         \begin{column}{0.5\textwidth}
@@ -822,9 +924,18 @@ void ALU::executeInstruction(
   // ... 3 weitere Bloecke
 }
 \end{lstlisting}
+            
+        \end{column}
+        \begin{column}{0.5\textwidth}
             \centering
             \includegraphics[width=0.9\textwidth]{../Docu/UML/22.png}
         \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Refactoring 2: Replace Conditional with Polymorphism}
+    
+    \begin{columns}
         \begin{column}{0.5\textwidth}
             \textbf{Nachher:} Nur noch virtueller Dispatch
 \begin{lstlisting}[language=picassocpp, basicstyle=\ttfamily\tiny]
@@ -833,14 +944,16 @@ uint16_t ALU::executeInstruction(
   return instruction.execute();
 }
 \end{lstlisting}
-            \vspace{0.4em}
+\includegraphics[width=0.9\textwidth]{../Docu/UML/23.png}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+        
             \begin{itemize}
                 \item Keine direkte Kopplung an Subklassen
                 \item OCP erfüllt: neue Kategorien ohne \texttt{ALU}-Änderung
                 \item Effizienter: kein Ausnahme-basiertes Casting
             \end{itemize}
-            \centering
-            \includegraphics[width=0.9\textwidth]{../Docu/UML/23.png}
+           
         \end{column}
     \end{columns}
 \end{frame}
@@ -869,7 +982,7 @@ uint16_t ALU::executeInstruction(
         \end{column}
         \begin{column}{0.5\textwidth}
             \centering
-            \includegraphics[width=0.75\textwidth]{../Docu/UML/18.png}
+            \includegraphics[width=0.45\textwidth]{../Docu/UML/18.png}
         \end{column}
     \end{columns}
 \end{frame}
@@ -907,11 +1020,13 @@ class ALU {
                 \item 35+ Instruktionen, alle mit gleichem Lebenszyklus
                 \item ALU kennt nur die Abstraktion
                 \item Neue Instruktion = neue Klasse, kein bestehender Code ändert sich
-            \end{itemize}
-            \centering
-            \includegraphics[height=3.5cm, angle=90]{../Docu/UML/19.png}
+            \end{itemize}            
         \end{column}
     \end{columns}
+\end{frame}
+
+\begin{frame}{Entwurfsmuster 2: Strategy Pattern UML}
+    \includegraphics[width=\textwidth]{../Docu/UML/19.png}
 \end{frame}
 
 % ===========================================================
@@ -923,54 +1038,33 @@ class ALU {
         \begin{column}{0.5\textwidth}
             \textbf{Herausforderungen:}
             \begin{itemize}
-                \item Thread-Synchronisation zwischen Simulations- und UI-Thread
-                \item Statisches \texttt{MemoryInterface} in \texttt{Instruction} -- technische Schuld
-                \item \texttt{PIC}-Klasse als God Object entstanden durch organisches Wachstum
-                \item Vollständige Abdeckung aller 35 Instruktionen in Tests
+                \item Allen Best-Practices korrekt folgen
+                \item Keinen Legacy-Code Schreiben
+                \item Mit Partner mit anderem Programmierstil Arbeiten
+                \item Nach Semesterpause weiterarbeiten
+                \item Nicht eine Gott-Klasse erzeugen
             \end{itemize}
         \end{column}
         \begin{column}{0.5\textwidth}
             \textbf{Lessons Learned:}
             \begin{itemize}
-                \item Clean Architecture zahlt sich bei Testbarkeit aus: \texttt{MemoryInterface}-Mock einfach zu erstellen
-                \item Strategy Pattern für Instruktions-Dispatch war entscheidend für Erweiterbarkeit
-                \item Frühe Refactorings (Extract Class, Replace Conditional) verbessern Wartbarkeit spürbar
-                \item Datengetriebene Tests mit JSON reduzieren Testboilerplate erheblich
+                \item Frühes Planen erleichtert die Entwicklung
+                \item Frühes Refactoring erleichter das Erweitern
+                \item Viele Tests zur Codevalidierung
+                \item Aufzeichnen der Architektur zum Erkennen von Problemen
             \end{itemize}
         \end{column}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Zusammenfassung}
-    \begin{columns}
-        \begin{column}{0.5\textwidth}
-            \textbf{PICasso in Kürze:}
-            \begin{itemize}
-                \item PIC-Midrange-Simulator in C++17
-                \item Vollständige Hardware-Simulation:\\
-                    RAM, Stack, Timer, 35 Instruktionen
-                \item Interaktive ncurses-TUI
-                \item Automatisierte Testsuite (Catch2)
-            \end{itemize}
-            \vspace{0.5em}
-            \textbf{Angewendete Konzepte:}
-            \begin{itemize}
-                \item Clean Architecture
-                \item SOLID-Prinzipien
-                \item GRASP, DRY
-                \item DDD (Entities, Value Objects, Aggregates)
-                \item Refactoring (Extract Class, Replace Conditional)
-                \item Entwurfsmuster (Kompositum, Strategy)
-            \end{itemize}
-        \end{column}
-        \begin{column}{0.5\textwidth}
-            \centering
-            \includegraphics[width=0.8\textwidth]{./images/pic.png}
-            \vspace{1em}
-            \Large\textbf{Vielen Dank!}\\[0.5em]
-            \normalsize Fragen?
-        \end{column}
-    \end{columns}
+    
+    \centering
+    \includegraphics[width=\textwidth]{./images/PIC.png}
+    \vspace{1em}
+    \Large\textbf{Vielen Dank!}\\[0.5em]
+    \normalsize Fragen?
+
 \end{frame}
 
 \end{document}
